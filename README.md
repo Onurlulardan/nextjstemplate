@@ -639,12 +639,6 @@ const deleted = await deleteRequest<boolean>(`/users/${id}`);
    - Error cases:
      - Shows "API Error" as title
      - Shows error message in description
-     - For 401:
-       - Shows "Login Again" button
-       - Notification stays until clicked (duration: 0)
-     - For other errors:
-       - Shows for 4.5 seconds
-       - No button
 
 3. **Retry Configuration**
    - 3 retry attempts for failed requests
