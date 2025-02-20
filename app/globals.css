@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gradient-to-br from-[#009688]/5 to-[#009688]/10;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom pagination styles */
+.pagination-with-pagesize-left {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pagination-with-pagesize-left .ant-pagination-options {
+  order: -1;
+  margin-right: auto;
+}
+
+.pagination-with-pagesize-left .ant-pagination {
+  margin-left: auto;
+}
+
+/* Ant Design table expand button alignment */
+.ant-table-cell.ant-table-cell-with-append {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
