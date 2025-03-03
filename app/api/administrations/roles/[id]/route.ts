@@ -65,8 +65,8 @@ export async function GET(
   }
 }
 
-// PATCH /api/roles/[id]
-export async function PATCH(
+// PUT /api/roles/[id]
+export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
