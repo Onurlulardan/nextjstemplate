@@ -102,17 +102,17 @@ async function createDefaultActions() {
 async function createDefaultRoles() {
   const defaultRoles = [
     {
-      name: 'Super Admin',
+      name: 'ADMIN',
       description: 'Full system access',
       isDefault: false,
     },
     {
-      name: 'Organization Admin',
+      name: 'ORGANIZATION ADMIN',
       description: 'Full organization access',
-      isDefault: true,
+      isDefault: false,
     },
     {
-      name: 'Member',
+      name: 'MEMBER',
       description: 'Basic member access',
       isDefault: true,
     },
@@ -135,7 +135,7 @@ async function createDefaultRoles() {
 async function createSuperAdmin() {
   // Create super admin user
   const hashedPassword = await bcrypt.hash(SUPER_ADMIN_PASSWORD, 10);
-  
+
   const superAdmin = await prisma.user.upsert({
     where: { email: SUPER_ADMIN_MAIL },
     update: {
@@ -165,7 +165,7 @@ async function createSuperAdminPermissions(superAdmin: any, resources: any[], ac
   });
 
   // Sadece wildcard (*) resource için tüm izinleri ekle
-  const wildcardResource = resources.find(r => r.slug === '*');
+  const wildcardResource = resources.find((r) => r.slug === '*');
   if (wildcardResource) {
     const permission = await prisma.permission.create({
       data: {
@@ -191,7 +191,7 @@ async function createSuperAdminPermissions(superAdmin: any, resources: any[], ac
 
 async function createDefaultRolePermissions(roles: any[], resources: any[], actions: any[]) {
   // Organization Admin rolü için izinler
-  const orgAdminRole = roles.find(r => r.name === 'Organization Admin');
+  const orgAdminRole = roles.find((r) => r.name === 'Organization Admin');
   if (orgAdminRole) {
     for (const resource of resources) {
       const permission = await prisma.permission.create({
@@ -215,13 +215,13 @@ async function createDefaultRolePermissions(roles: any[], resources: any[], acti
   }
 
   // Member rolü için sınırlı izinler
-  const memberRole = roles.find(r => r.name === 'Member');
+  const memberRole = roles.find((r) => r.name === 'Member');
   if (memberRole) {
     const viewableResources = ['security-log'];
-    const viewAction = actions.find(a => a.slug === 'view');
+    const viewAction = actions.find((a) => a.slug === 'view');
 
     for (const resourceSlug of viewableResources) {
-      const resource = resources.find(r => r.slug === resourceSlug);
+      const resource = resources.find((r) => r.slug === resourceSlug);
       if (resource && viewAction) {
         const permission = await prisma.permission.create({
           data: {

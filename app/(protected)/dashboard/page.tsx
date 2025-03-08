@@ -46,9 +46,7 @@ export default function Dashboard() {
     <div className="flex items-center justify-center p-4 h-full">
       <Card className="w-full text-center">
         <Title level={2}>Welcome to NextJS Starter Template</Title>
-        <Text className="block mb-8 text-lg">
-          A modern and scalable system for your business
-        </Text>
+        <Text className="block mb-8 text-lg">A modern and scalable system for your business</Text>
 
         {session ? (
           <div>
@@ -62,26 +60,17 @@ export default function Dashboard() {
               <Row gutter={16} className="mb-8 mt-8">
                 <Col span={8}>
                   <Card>
-                    <Statistic
-                      title="Total Organizations"
-                      value={stats.totalOrganizations}
-                    />
+                    <Statistic title="Total Organizations" value={stats.totalOrganizations} />
                   </Card>
                 </Col>
                 <Col span={8}>
                   <Card>
-                    <Statistic
-                      title="Total Users"
-                      value={stats.totalUsers}
-                    />
+                    <Statistic title="Total Users" value={stats.totalUsers} />
                   </Card>
                 </Col>
                 <Col span={8}>
                   <Card>
-                    <Statistic
-                      title="Active Users"
-                      value={stats.activeUsers}
-                    />
+                    <Statistic title="Active Users" value={stats.activeUsers} />
                   </Card>
                 </Col>
               </Row>

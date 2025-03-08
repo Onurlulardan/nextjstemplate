@@ -33,7 +33,7 @@ export function AddUsersDrawer({ organization, open, onClose }: AddUsersDrawerPr
 
   const handleSubmit = async (values: { userIds: string[] }) => {
     if (!organization) return;
-    
+
     try {
       setLoading(true);
       const result = await postRequest(
@@ -60,11 +60,7 @@ export function AddUsersDrawer({ organization, open, onClose }: AddUsersDrawerPr
       open={open}
       width={400}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-      >
+      <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Form.Item
           name="userIds"
           label="Select Users"

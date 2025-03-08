@@ -1,18 +1,18 @@
-import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
-import { requirePermission } from "@/lib/auth/permissions";
+import { NextResponse, NextRequest } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/auth-options';
+import { requirePermission } from '@/lib/auth/permissions';
 
 // GET /api/permissions
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("permission", "view");
+    await requirePermission('permission', 'view');
 
     const permissions = await prisma.permission.findMany({
       include: {
@@ -48,8 +48,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(permissions);
   } catch (error) {
-    console.error("[PERMISSIONS_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[PERMISSIONS_GET]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
@@ -58,27 +58,27 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("permission", "create");
+    await requirePermission('permission', 'create');
 
     const body = await request.json();
     const { resourceId, target, userId, roleId, organizationId, actionIds } = body;
 
     if (!resourceId || !target || !actionIds?.length) {
-      return new NextResponse("Missing required fields", { status: 400 });
+      return new NextResponse('Missing required fields', { status: 400 });
     }
 
     // Validate target type
-    if (!["USER", "ROLE", "ORGANIZATION"].includes(target)) {
-      return new NextResponse("Invalid target type", { status: 400 });
+    if (!['USER', 'ROLE', 'ORGANIZATION'].includes(target)) {
+      return new NextResponse('Invalid target type', { status: 400 });
     }
 
     // Check that only one target ID is provided
     const targetIds = [userId, roleId, organizationId].filter(Boolean);
     if (targetIds.length !== 1) {
-      return new NextResponse("Exactly one target ID must be provided", { status: 400 });
+      return new NextResponse('Exactly one target ID must be provided', { status: 400 });
     }
 
     // Create permission
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(permission, { status: 201 });
   } catch (error) {
-    console.error("[PERMISSIONS_POST]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[PERMISSIONS_POST]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }

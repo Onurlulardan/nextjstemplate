@@ -1,21 +1,18 @@
-import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
-import { requirePermission } from "@/lib/auth/permissions";
+import { NextResponse, NextRequest } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/auth-options';
+import { requirePermission } from '@/lib/auth/permissions';
 
 // GET /api/resources/[id]
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("resource", "view");
+    await requirePermission('resource', 'view');
 
     const { id } = await params;
 
@@ -31,35 +28,32 @@ export async function GET(
     });
 
     if (!resource) {
-      return new NextResponse("Resource not found", { status: 404 });
+      return new NextResponse('Resource not found', { status: 404 });
     }
 
     return NextResponse.json(resource);
   } catch (error) {
-    console.error("[RESOURCE_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[RESOURCE_GET]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
 // PUT /api/resources/[id]
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("resource", "edit");
+    await requirePermission('resource', 'edit');
 
     const { id } = await params;
     const body = await request.json();
     const { name, slug, description } = body;
 
     if (!name || !slug) {
-      return new NextResponse("Missing required fields", { status: 400 });
+      return new NextResponse('Missing required fields', { status: 400 });
     }
 
     // Check if resource exists
@@ -68,7 +62,7 @@ export async function PUT(
     });
 
     if (!existingResource) {
-      return new NextResponse("Resource not found", { status: 404 });
+      return new NextResponse('Resource not found', { status: 404 });
     }
 
     // If slug is being changed, check if new slug is already in use
@@ -78,7 +72,7 @@ export async function PUT(
       });
 
       if (slugExists) {
-        return new NextResponse("Resource with this slug already exists", { status: 400 });
+        return new NextResponse('Resource with this slug already exists', { status: 400 });
       }
     }
 
@@ -93,8 +87,8 @@ export async function PUT(
 
     return NextResponse.json(resource);
   } catch (error) {
-    console.error("[RESOURCE_PUT]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[RESOURCE_PUT]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
@@ -106,10 +100,10 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("resource", "delete");
+    await requirePermission('resource', 'delete');
 
     const { id } = await params;
 
@@ -126,14 +120,13 @@ export async function DELETE(
     });
 
     if (!existingResource) {
-      return new NextResponse("Resource not found", { status: 404 });
+      return new NextResponse('Resource not found', { status: 404 });
     }
 
     if (existingResource._count.permissions > 0) {
-      return new NextResponse(
-        "Cannot delete resource that has associated permissions",
-        { status: 400 }
-      );
+      return new NextResponse('Cannot delete resource that has associated permissions', {
+        status: 400,
+      });
     }
 
     await prisma.resource.delete({
@@ -142,7 +135,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[RESOURCE_DELETE]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[RESOURCE_DELETE]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }

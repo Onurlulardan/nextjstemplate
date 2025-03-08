@@ -1,21 +1,18 @@
-import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
-import { requirePermission } from "@/lib/auth/permissions";
+import { NextResponse, NextRequest } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/auth-options';
+import { requirePermission } from '@/lib/auth/permissions';
 
 // GET /api/roles/[id]
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("role", "view");
+    await requirePermission('role', 'view');
 
     const { id } = await params;
 
@@ -55,35 +52,32 @@ export async function GET(
     });
 
     if (!role) {
-      return new NextResponse("Role not found", { status: 404 });
+      return new NextResponse('Role not found', { status: 404 });
     }
 
     return NextResponse.json(role);
   } catch (error) {
-    console.error("[ROLE_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[ROLE_GET]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
 // PUT /api/roles/[id]
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("role", "edit");
+    await requirePermission('role', 'edit');
 
     const { id } = await params;
     const body = await request.json();
     const { name, description, isDefault } = body;
 
     if (!name && description === undefined && isDefault === undefined) {
-      return new NextResponse("No fields to update", { status: 400 });
+      return new NextResponse('No fields to update', { status: 400 });
     }
 
     // Check if role exists
@@ -95,7 +89,7 @@ export async function PUT(
     });
 
     if (!existingRole) {
-      return new NextResponse("Role not found", { status: 404 });
+      return new NextResponse('Role not found', { status: 404 });
     }
 
     // If name is being changed, check if new name is already in use in the same organization
@@ -109,10 +103,9 @@ export async function PUT(
       });
 
       if (nameExists) {
-        return new NextResponse(
-          "Role with this name already exists in the organization",
-          { status: 400 }
-        );
+        return new NextResponse('Role with this name already exists in the organization', {
+          status: 400,
+        });
       }
     }
 
@@ -137,8 +130,8 @@ export async function PUT(
 
     return NextResponse.json(updatedRole);
   } catch (error) {
-    console.error("[ROLE_PATCH]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[ROLE_PATCH]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
@@ -150,10 +143,10 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("role", "delete");
+    await requirePermission('role', 'delete');
 
     const { id } = await params;
 
@@ -170,15 +163,14 @@ export async function DELETE(
     });
 
     if (!role) {
-      return new NextResponse("Role not found", { status: 404 });
+      return new NextResponse('Role not found', { status: 404 });
     }
 
     // Check if role has members
     if (role._count.members > 0) {
-      return new NextResponse(
-        "Cannot delete role with assigned members. Remove members first.",
-        { status: 400 }
-      );
+      return new NextResponse('Cannot delete role with assigned members. Remove members first.', {
+        status: 400,
+      });
     }
 
     // Delete role
@@ -188,7 +180,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[ROLE_DELETE]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[ROLE_DELETE]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }

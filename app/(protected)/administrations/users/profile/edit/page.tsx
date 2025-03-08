@@ -3,7 +3,19 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Button, Form, Input, Card, Typography, Avatar, Row, Col, Divider, Upload, Tabs } from 'antd';
+import {
+  Button,
+  Form,
+  Input,
+  Card,
+  Typography,
+  Avatar,
+  Row,
+  Col,
+  Divider,
+  Upload,
+  Tabs,
+} from 'antd';
 import {
   UserOutlined,
   MailOutlined,
@@ -80,7 +92,9 @@ export default function ProfileEditPage() {
     }
   };
 
-  const handleAvatarChange: UploadProps['onChange'] = async (info: UploadChangeParam<UploadFile>) => {
+  const handleAvatarChange: UploadProps['onChange'] = async (
+    info: UploadChangeParam<UploadFile>
+  ) => {
     if (info.file.status === 'done') {
       setAvatarUrl(info.file.response.url);
     }
@@ -96,33 +110,29 @@ export default function ProfileEditPage() {
         <Row gutter={[24, 24]}>
           {/* Sol Taraf - Avatar ve Temel Bilgiler */}
           <Col xs={24} md={8}>
-            <div className='flex justify-center items-center  h-full'>
-            <div className="text-center">
-              <Upload
-                name="avatar"
-                listType="picture-circle"
-                showUploadList={false}
-                action="/api/administrations/upload"
-                onChange={handleAvatarChange}
-              >
-                {avatarUrl || session.user.avatar ? (
-                  <Avatar
-                    size={120}
-                    src={avatarUrl || session.user.avatar}
-                    alt="avatar"
-                  />
-                ) : (
-                  <div>
-                    <CameraOutlined className="text-2xl" />
-                    <div className="mt-2">Upload</div>
-                  </div>
-                )}
-              </Upload>
-              <Title level={4} className="mt-4 mb-1">
-                {session.user.firstName} {session.user.lastName}
-              </Title>
-              <Text type="secondary">{session.user.email}</Text>
-            </div>
+            <div className="flex justify-center items-center  h-full">
+              <div className="text-center">
+                <Upload
+                  name="avatar"
+                  listType="picture-circle"
+                  showUploadList={false}
+                  action="/api/administrations/upload"
+                  onChange={handleAvatarChange}
+                >
+                  {avatarUrl || session.user.avatar ? (
+                    <Avatar size={120} src={avatarUrl || session.user.avatar} alt="avatar" />
+                  ) : (
+                    <div>
+                      <CameraOutlined className="text-2xl" />
+                      <div className="mt-2">Upload</div>
+                    </div>
+                  )}
+                </Upload>
+                <Title level={4} className="mt-4 mb-1">
+                  {session.user.firstName} {session.user.lastName}
+                </Title>
+                <Text type="secondary">{session.user.email}</Text>
+              </div>
             </div>
           </Col>
 
@@ -173,7 +183,12 @@ export default function ProfileEditPage() {
                       <Form.Item
                         name="phone"
                         label="Phone Number"
-                        rules={[{ pattern: /^[0-9+\-\s()]*$/, message: 'Please enter a valid phone number' }]}
+                        rules={[
+                          {
+                            pattern: /^[0-9+\-\s()]*$/,
+                            message: 'Please enter a valid phone number',
+                          },
+                        ]}
                       >
                         <Input prefix={<PhoneOutlined />} placeholder="Phone Number" />
                       </Form.Item>
@@ -191,16 +206,13 @@ export default function ProfileEditPage() {
                         </Button>
                       </Form.Item>
                     </Form>
-                  )
+                  ),
                 },
                 {
                   key: 'password',
                   label: 'Change Password',
                   children: (
-                    <Form
-                      layout="vertical"
-                      onFinish={handlePasswordSubmit}
-                    >
+                    <Form layout="vertical" onFinish={handlePasswordSubmit}>
                       <Form.Item
                         name="currentPassword"
                         label="Current Password"
@@ -252,8 +264,8 @@ export default function ProfileEditPage() {
                         </Button>
                       </Form.Item>
                     </Form>
-                  )
-                }
+                  ),
+                },
               ]}
             />
           </Col>

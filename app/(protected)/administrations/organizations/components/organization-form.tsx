@@ -21,7 +21,7 @@ export function OrganizationForm({ initialValues, onSubmit, loading }: Organizat
 
   const fetchAvailableParents = async () => {
     try {
-      const url = initialValues 
+      const url = initialValues
         ? `/administrations/organizations/available-parents?organizationId=${initialValues.id}`
         : '/administrations/organizations/available-parents';
 
@@ -44,12 +44,7 @@ export function OrganizationForm({ initialValues, onSubmit, loading }: Organizat
   };
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      onFinish={handleSubmit}
-      initialValues={initialValues}
-    >
+    <Form form={form} layout="vertical" onFinish={handleSubmit} initialValues={initialValues}>
       <Form.Item
         name="name"
         label="Name"
@@ -63,7 +58,10 @@ export function OrganizationForm({ initialValues, onSubmit, loading }: Organizat
         label="Slug"
         rules={[
           { required: true, message: 'Please enter organization slug' },
-          { pattern: /^[a-z0-9-]+$/, message: 'Slug can only contain lowercase letters, numbers, and hyphens' }
+          {
+            pattern: /^[a-z0-9-]+$/,
+            message: 'Slug can only contain lowercase letters, numbers, and hyphens',
+          },
         ]}
       >
         <Input placeholder="Enter organization slug" />
@@ -83,15 +81,8 @@ export function OrganizationForm({ initialValues, onSubmit, loading }: Organizat
         </Select>
       </Form.Item>
 
-      <Form.Item
-        name="parentId"
-        label="Parent Organization"
-      >
-        <Select
-          allowClear
-          placeholder="Select parent organization"
-          loading={!organizations.length}
-        >
+      <Form.Item name="parentId" label="Parent Organization">
+        <Select allowClear placeholder="Select parent organization" loading={!organizations.length}>
           {organizations.map((org) => (
             <Select.Option key={org.id} value={org.id}>
               {org.name}

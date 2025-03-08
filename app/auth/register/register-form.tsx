@@ -44,7 +44,11 @@ export default function RegisterForm() {
 
       router.push('/');
     } catch (error) {
-      showNotification('error', 'Registration Failed', error instanceof Error ? error.message : 'Failed to create account');
+      showNotification(
+        'error',
+        'Registration Failed',
+        error instanceof Error ? error.message : 'Failed to create account'
+      );
     } finally {
       setLoading(false);
     }

@@ -1,21 +1,18 @@
-import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
-import { requirePermission } from "@/lib/auth/permissions";
+import { NextResponse, NextRequest } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/auth-options';
+import { requirePermission } from '@/lib/auth/permissions';
 
 // GET /api/organizations/[id]
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("organization", "view");
+    await requirePermission('organization', 'view');
 
     const { id } = await params;
 
@@ -50,28 +47,25 @@ export async function GET(
     });
 
     if (!organization) {
-      return new NextResponse("Organization not found", { status: 404 });
+      return new NextResponse('Organization not found', { status: 404 });
     }
 
     return NextResponse.json(organization);
   } catch (error) {
-    console.error("[ORGANIZATION_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[ORGANIZATION_GET]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
 // PATCH /api/organizations/[id]
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("organization", "edit");
+    await requirePermission('organization', 'edit');
 
     const { id } = await params;
 
@@ -79,7 +73,7 @@ export async function PATCH(
     const { name, slug, status, parentId } = body;
 
     if (!name && !slug && !status && !parentId) {
-      return new NextResponse("No fields to update", { status: 400 });
+      return new NextResponse('No fields to update', { status: 400 });
     }
 
     // Check if organization exists
@@ -88,7 +82,7 @@ export async function PATCH(
     });
 
     if (!existingOrg) {
-      return new NextResponse("Organization not found", { status: 404 });
+      return new NextResponse('Organization not found', { status: 404 });
     }
 
     // Check if new slug is already taken
@@ -98,7 +92,7 @@ export async function PATCH(
       });
 
       if (slugExists) {
-        return new NextResponse("Organization with this slug already exists", {
+        return new NextResponse('Organization with this slug already exists', {
           status: 400,
         });
       }
@@ -126,8 +120,8 @@ export async function PATCH(
 
     return NextResponse.json(updatedOrganization);
   } catch (error) {
-    console.error("[ORGANIZATION_PATCH]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[ORGANIZATION_PATCH]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
@@ -139,10 +133,10 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("organization", "delete");
+    await requirePermission('organization', 'delete');
 
     const { id } = await params;
 
@@ -152,12 +146,12 @@ export async function DELETE(
     });
 
     if (!organization) {
-      return new NextResponse("Organization not found", { status: 404 });
+      return new NextResponse('Organization not found', { status: 404 });
     }
 
     // Check if user is the owner
     if (organization.ownerId !== session.user.id) {
-      return new NextResponse("Only owner can delete organization", { status: 403 });
+      return new NextResponse('Only owner can delete organization', { status: 403 });
     }
 
     // Delete organization (cascade will handle related records)
@@ -167,7 +161,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[ORGANIZATION_DELETE]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[ORGANIZATION_DELETE]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }

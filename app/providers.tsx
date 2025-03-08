@@ -54,9 +54,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ConfigProvider theme={themeConfig}>
         <App>
           <NotificationProvider>
-            <NotificationSetup>
-              {children}
-            </NotificationSetup>
+            <NotificationSetup>{children}</NotificationSetup>
           </NotificationProvider>
         </App>
       </ConfigProvider>

@@ -152,19 +152,21 @@ export const authOptions: NextAuthOptions = {
         // Prepare permissions for memberships
         const memberships = user.memberships.map((m) => ({
           id: m.id,
-          role: m.role ? {
-            id: m.role.id,
-            name: m.role.name,
-            permissions: m.role.permissions.map((p) => ({
-              target: p.target,
-              resource: {
-                slug: p.resource.slug,
-              },
-              actions: p.actions.map((a) => ({
-                slug: a.action.slug,
-              })),
-            })),
-          } : null,
+          role: m.role
+            ? {
+                id: m.role.id,
+                name: m.role.name,
+                permissions: m.role.permissions.map((p) => ({
+                  target: p.target,
+                  resource: {
+                    slug: p.resource.slug,
+                  },
+                  actions: p.actions.map((a) => ({
+                    slug: a.action.slug,
+                  })),
+                })),
+              }
+            : null,
           organization: {
             id: m.organization.id,
             name: m.organization.name,

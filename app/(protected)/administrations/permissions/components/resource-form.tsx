@@ -25,11 +25,7 @@ export function ResourceForm({ initialValues, onSubmit, loading }: ResourceFormP
   }, [form, initialValues]);
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      onFinish={onSubmit}
-    >
+    <Form form={form} layout="vertical" onFinish={onSubmit}>
       <Form.Item
         name="name"
         label="Resource Name"
@@ -46,16 +42,16 @@ export function ResourceForm({ initialValues, onSubmit, loading }: ResourceFormP
         label="Slug"
         rules={[
           { required: true, message: 'Please enter slug' },
-          { pattern: /^[a-z0-9-]+$/, message: 'Slug can only contain lowercase letters, numbers, and hyphens' },
+          {
+            pattern: /^[a-z0-9-]+$/,
+            message: 'Slug can only contain lowercase letters, numbers, and hyphens',
+          },
         ]}
       >
         <Input placeholder="Enter slug (e.g., user, product)" />
       </Form.Item>
 
-      <Form.Item
-        name="description"
-        label="Description"
-      >
+      <Form.Item name="description" label="Description">
         <Input.TextArea rows={4} placeholder="Enter resource description" />
       </Form.Item>
 

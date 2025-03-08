@@ -36,7 +36,11 @@ export default function LoginForm() {
       showNotification('success', 'Success', 'Login successful');
       router.push('/');
     } catch (error) {
-      showNotification('error', 'Error', error instanceof Error ? error.message : 'An error occurred during login');
+      showNotification(
+        'error',
+        'Error',
+        error instanceof Error ? error.message : 'An error occurred during login'
+      );
     } finally {
       setLoading(false);
     }

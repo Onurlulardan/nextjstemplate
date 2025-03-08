@@ -55,7 +55,7 @@ export default function RolesPage() {
 
   const handleDelete = async () => {
     if (!roleToDelete) return;
-    
+
     try {
       await deleteRequest(`/administrations/roles/${roleToDelete.id}`);
       setDeleteModalVisible(false);
@@ -69,7 +69,7 @@ export default function RolesPage() {
   const handleSubmit = async (values: any) => {
     setFormLoading(true);
     try {
-      const endpoint = selectedRole 
+      const endpoint = selectedRole
         ? `/administrations/roles/${selectedRole.id}`
         : '/administrations/roles';
 
@@ -147,7 +147,7 @@ export default function RolesPage() {
       title: 'Default',
       dataIndex: 'isDefault',
       key: 'isDefault',
-      render: (isDefault: boolean) => isDefault ? <Tag color="blue">Default</Tag> : null,
+      render: (isDefault: boolean) => (isDefault ? <Tag color="blue">Default</Tag> : null),
     },
     {
       title: 'Members',
@@ -160,7 +160,9 @@ export default function RolesPage() {
     <div className="p-8">
       <Card>
         <div className="flex justify-between items-center mb-4">
-          <Title level={3} className="!mb-0">Roles</Title>
+          <Title level={3} className="!mb-0">
+            Roles
+          </Title>
           {canCreate && (
             <Button
               type="primary"
@@ -180,10 +182,14 @@ export default function RolesPage() {
           dataSource={roles}
           loading={loading}
           rowKey="id"
-          onRowDoubleClick={canEdit ? (record) => {
-            setSelectedRole(record);
-            setDrawerVisible(true);
-          } : undefined}
+          onRowDoubleClick={
+            canEdit
+              ? (record) => {
+                  setSelectedRole(record);
+                  setDrawerVisible(true);
+                }
+              : undefined
+          }
         />
       </Card>
 
@@ -197,11 +203,7 @@ export default function RolesPage() {
         open={drawerVisible}
         bodyStyle={{ paddingBottom: 80 }}
       >
-        <RoleForm
-          initialValues={selectedRole}
-          onSubmit={handleSubmit}
-          loading={formLoading}
-        />
+        <RoleForm initialValues={selectedRole} onSubmit={handleSubmit} loading={formLoading} />
       </Drawer>
 
       <Modal

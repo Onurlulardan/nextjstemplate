@@ -1,22 +1,19 @@
-import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { hash } from "bcryptjs";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
-import { requirePermission } from "@/lib/auth/permissions";
+import { NextResponse, NextRequest } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { hash } from 'bcryptjs';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/auth-options';
+import { requirePermission } from '@/lib/auth/permissions';
 
 // GET /api/users/[id]
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("user", "view");
+    await requirePermission('user', 'view');
 
     const { id } = await params;
 
@@ -44,28 +41,25 @@ export async function GET(
     });
 
     if (!user) {
-      return new NextResponse("User not found", { status: 404 });
+      return new NextResponse('User not found', { status: 404 });
     }
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error("[USER_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[USER_GET]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
 // PUT /api/users/[id]
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("user", "edit");
+    await requirePermission('user', 'edit');
 
     const { id } = await params;
     const body = await request.json();
@@ -77,7 +71,7 @@ export async function PUT(
     });
 
     if (!existingUser) {
-      return new NextResponse("User not found", { status: 404 });
+      return new NextResponse('User not found', { status: 404 });
     }
 
     // If email is being changed, check if new email is already in use
@@ -87,7 +81,7 @@ export async function PUT(
       });
 
       if (emailInUse) {
-        return new NextResponse("Email already in use", { status: 400 });
+        return new NextResponse('Email already in use', { status: 400 });
       }
     }
 
@@ -127,8 +121,8 @@ export async function PUT(
 
     return NextResponse.json(updatedUser);
   } catch (error) {
-    console.error("[USER_PUT]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[USER_PUT]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
@@ -140,10 +134,10 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("user", "delete");
+    await requirePermission('user', 'delete');
 
     const { id } = await params;
 
@@ -153,7 +147,7 @@ export async function DELETE(
     });
 
     if (!user) {
-      return new NextResponse("User not found", { status: 404 });
+      return new NextResponse('User not found', { status: 404 });
     }
 
     // Delete user
@@ -161,9 +155,9 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: "User deleted successfully" });
+    return NextResponse.json({ message: 'User deleted successfully' });
   } catch (error) {
-    console.error("[USER_DELETE]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[USER_DELETE]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }

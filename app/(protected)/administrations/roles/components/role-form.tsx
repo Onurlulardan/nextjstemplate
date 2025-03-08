@@ -80,16 +80,9 @@ export function RoleForm({ initialValues, onSubmit, loading }: RoleFormProps) {
       <Form.Item
         name="description"
         label="Description"
-        rules={[
-          { max: 500, message: 'Description cannot be longer than 500 characters' },
-        ]}
+        rules={[{ max: 500, message: 'Description cannot be longer than 500 characters' }]}
       >
-        <Input.TextArea
-          placeholder="Enter role description"
-          rows={4}
-          showCount
-          maxLength={500}
-        />
+        <Input.TextArea placeholder="Enter role description" rows={4} showCount maxLength={500} />
       </Form.Item>
 
       {isAdmin && (
@@ -102,7 +95,7 @@ export function RoleForm({ initialValues, onSubmit, loading }: RoleFormProps) {
             placeholder="Select organization"
             allowClear
             loading={loadingOrgs}
-            options={organizations.map(org => ({
+            options={organizations.map((org) => ({
               label: org.name,
               value: org.id,
             }))}

@@ -1,8 +1,8 @@
-import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
-import { requirePermission } from "@/lib/auth/permissions";
+import { NextResponse, NextRequest } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/auth-options';
+import { requirePermission } from '@/lib/auth/permissions';
 
 // Schema for creating/updating an action
 const actionSchema = {
@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("action", "view");
+    await requirePermission('action', 'view');
 
     const actions = await prisma.action.findMany({
       include: {
@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(actions);
   } catch (error) {
-    console.error("[ACTIONS_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[ACTIONS_GET]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
@@ -43,16 +43,16 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("action", "create");
+    await requirePermission('action', 'create');
 
     const body = await request.json();
     const { name, slug, description } = body;
 
     if (!name || !slug) {
-      return new NextResponse("Missing required fields", { status: 400 });
+      return new NextResponse('Missing required fields', { status: 400 });
     }
 
     // Check if action with same slug already exists
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingAction) {
-      return new NextResponse("Action with this slug already exists", { status: 400 });
+      return new NextResponse('Action with this slug already exists', { status: 400 });
     }
 
     const action = await prisma.action.create({
@@ -74,8 +74,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(action, { status: 201 });
   } catch (error) {
-    console.error("[ACTIONS_POST]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[ACTIONS_POST]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
@@ -84,17 +84,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("action", "edit");
+    await requirePermission('action', 'edit');
 
     const { id } = await params;
     const body = await request.json();
     const { name, slug, description } = body;
 
     if (!name || !slug) {
-      return new NextResponse("Missing required fields", { status: 400 });
+      return new NextResponse('Missing required fields', { status: 400 });
     }
 
     // Check if action exists
@@ -103,7 +103,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     if (!existingAction) {
-      return new NextResponse("Action not found", { status: 404 });
+      return new NextResponse('Action not found', { status: 404 });
     }
 
     // Check if slug is being changed and if new slug is already taken
@@ -113,7 +113,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       });
 
       if (slugExists) {
-        return new NextResponse("Action with this slug already exists", { status: 400 });
+        return new NextResponse('Action with this slug already exists', { status: 400 });
       }
     }
 
@@ -128,20 +128,23 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json(action);
   } catch (error) {
-    console.error("[ACTIONS_PUT]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[ACTIONS_PUT]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
 // DELETE /api/actions/[id]
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("action", "delete");
+    await requirePermission('action', 'delete');
 
     const { id } = await params;
 
@@ -158,11 +161,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     });
 
     if (!existingAction) {
-      return new NextResponse("Action not found", { status: 404 });
+      return new NextResponse('Action not found', { status: 404 });
     }
 
     if (existingAction._count.permissions > 0) {
-      return new NextResponse("Cannot delete action that has associated permissions", { status: 400 });
+      return new NextResponse('Cannot delete action that has associated permissions', {
+        status: 400,
+      });
     }
 
     await prisma.action.delete({
@@ -171,7 +176,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[ACTIONS_DELETE]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[ACTIONS_DELETE]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }

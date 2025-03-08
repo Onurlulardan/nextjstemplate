@@ -46,7 +46,7 @@ export default function UsersPage() {
 
   const handleDelete = async () => {
     if (!userToDelete) return;
-    
+
     try {
       await deleteRequest(`/administrations/users/${userToDelete.id}`);
       setDeleteModalVisible(false);
@@ -60,7 +60,9 @@ export default function UsersPage() {
   const handleSubmit = async (values: any) => {
     setFormLoading(true);
     try {
-      const endpoint = selectedUser ? `/administrations/users/${selectedUser.id}` : '/administrations/users';
+      const endpoint = selectedUser
+        ? `/administrations/users/${selectedUser.id}`
+        : '/administrations/users';
 
       if (selectedUser) {
         await putRequest(endpoint, values);
@@ -85,7 +87,7 @@ export default function UsersPage() {
       width: 100,
       render: (record: UserWithoutPassword) => {
         const menuItems: MenuProps['items'] = [];
-        
+
         if (canEdit) {
           menuItems.push({
             key: 'edit',
@@ -138,9 +140,7 @@ export default function UsersPage() {
       title: 'Role',
       dataIndex: 'role',
       key: 'role',
-      render: (role: UserRole) => (
-        <Tag color={role === 'ADMIN' ? 'blue' : 'green'}>{role}</Tag>
-      ),
+      render: (role: UserRole) => <Tag color={role === 'ADMIN' ? 'blue' : 'green'}>{role}</Tag>,
     },
     {
       title: 'Status',
@@ -156,8 +156,8 @@ export default function UsersPage() {
     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
       <Title level={2}>Users</Title>
       {canCreate && (
-        <Button 
-          type="primary" 
+        <Button
+          type="primary"
           icon={<PlusOutlined />}
           onClick={() => {
             setSelectedUser(null);
@@ -179,10 +179,14 @@ export default function UsersPage() {
           rowKey="id"
           loading={loading}
           headerContent={headerContent}
-          onRowDoubleClick={canEdit ? (record) => {
-            setSelectedUser(record);
-            setDrawerVisible(true);
-          } : undefined}
+          onRowDoubleClick={
+            canEdit
+              ? (record) => {
+                  setSelectedUser(record);
+                  setDrawerVisible(true);
+                }
+              : undefined
+          }
         />
       </Card>
 
@@ -218,9 +222,10 @@ export default function UsersPage() {
         <p>Are you sure you want to delete this user?</p>
         {userToDelete && (
           <p>
-            <strong>{userToDelete.firstName && userToDelete.lastName 
-              ? `${userToDelete.firstName} ${userToDelete.lastName}` 
-              : userToDelete.email}
+            <strong>
+              {userToDelete.firstName && userToDelete.lastName
+                ? `${userToDelete.firstName} ${userToDelete.lastName}`
+                : userToDelete.email}
             </strong>
           </p>
         )}

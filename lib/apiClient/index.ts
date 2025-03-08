@@ -5,8 +5,8 @@ import { RequestOptions, ShowNotificationFunction } from './types/types';
 
 const axiosInstance = axios.create({
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 });
 
 // Retry configuration
@@ -17,12 +17,14 @@ axiosRetry(axiosInstance, {
     if (error.response?.data) {
       return false;
     }
-    return axiosRetry.isNetworkOrIdempotentRequestError(error) || (error.response?.status ?? 0) >= 500;
-  }
+    return (
+      axiosRetry.isNetworkOrIdempotentRequestError(error) || (error.response?.status ?? 0) >= 500
+    );
+  },
 });
 
 // Request interceptor
-axiosInstance.interceptors.request.use(config => {
+axiosInstance.interceptors.request.use((config) => {
   if (!config.url?.startsWith('/api')) {
     config.url = `/api${config.url}`;
   }
@@ -33,11 +35,15 @@ axiosInstance.interceptors.request.use(config => {
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     // Success notification for POST, PUT, DELETE requests
-    if (typeof window !== 'undefined' && ['POST', 'PUT', 'DELETE'].includes(response.config.method?.toUpperCase() || '')) {
-      const message = response.config.method?.toUpperCase() === 'DELETE' 
-        ? 'Deletion successful!'
-        : 'Process completed successfully';
-      
+    if (
+      typeof window !== 'undefined' &&
+      ['POST', 'PUT', 'DELETE'].includes(response.config.method?.toUpperCase() || '')
+    ) {
+      const message =
+        response.config.method?.toUpperCase() === 'DELETE'
+          ? 'Deletion successful!'
+          : 'Process completed successfully';
+
       const showNotification = window.__showNotification as ShowNotificationFunction;
       showNotification?.('success', message);
     }
@@ -50,13 +56,12 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    const errorMessage = error.response?.data as string || error.message;
-    
+    const errorMessage = (error.response?.data as string) || error.message;
+
     if (typeof window !== 'undefined') {
       const showNotification = window.__showNotification as ShowNotificationFunction;
-      const truncatedMessage = errorMessage.length > 500 
-        ? errorMessage.slice(0, 497) + '...' 
-        : errorMessage;
+      const truncatedMessage =
+        errorMessage.length > 500 ? errorMessage.slice(0, 497) + '...' : errorMessage;
       showNotification?.('error', 'Error', truncatedMessage);
     }
 
@@ -64,7 +69,12 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-async function apiClient<T = any>(endpoint: string, method = 'GET', data: any = null, options: RequestOptions = {}) {
+async function apiClient<T = any>(
+  endpoint: string,
+  method = 'GET',
+  data: any = null,
+  options: RequestOptions = {}
+) {
   const { headers = {}, ...params } = options;
 
   const response = await axiosInstance({
@@ -72,7 +82,7 @@ async function apiClient<T = any>(endpoint: string, method = 'GET', data: any = 
     method,
     data: method !== 'GET' ? data : null,
     params: method === 'GET' ? data || params : params,
-    headers
+    headers,
   });
 
   return response as T;

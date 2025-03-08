@@ -13,7 +13,9 @@ A modern and scalable system. Developed with Next.js 15, TypeScript, Prisma, and
 - Mobile-responsive design
 
 ### Security Logs
+
 The system keeps track of all authentication attempts, including:
+
 - Login attempts (successful/failed)
 - IP addresses
 - Browser information
@@ -79,68 +81,73 @@ nextstarter/
 ### 1. Basic Concepts
 
 #### Resource
+
 Represents protected entities in the system.
 
 ```typescript
 // Example resource definitions
 const resources = [
-  { name: "Product", slug: "product" },
-  { name: "Customer", slug: "customer" },
-  { name: "Order", slug: "order" }
+  { name: 'Product', slug: 'product' },
+  { name: 'Customer', slug: 'customer' },
+  { name: 'Order', slug: 'order' },
 ];
 ```
 
 #### Action
+
 Defines operations that can be performed on resources.
 
 ```typescript
 // Example action definitions
 const actions = [
-  { name: "View", slug: "view" },
-  { name: "Create", slug: "create" },
-  { name: "Edit", slug: "edit" },
-  { name: "Delete", slug: "delete" }
+  { name: 'View', slug: 'view' },
+  { name: 'Create', slug: 'create' },
+  { name: 'Edit', slug: 'edit' },
+  { name: 'Delete', slug: 'delete' },
 ];
 ```
 
 ### 2. Permission Management Examples
 
 #### a) User-Based Permission
+
 Assigning permission directly to a user:
 
 ```typescript
 // Example: Give John permission to view and edit products
 const permission = {
-  target: "USER",
-  userId: "john_123",
-  resourceId: "product",
-  actions: ["view", "edit"]
+  target: 'USER',
+  userId: 'john_123',
+  resourceId: 'product',
+  actions: ['view', 'edit'],
 };
 ```
 
 #### b) Role-Based Permission
+
 Assigning permission to a role:
 
 ```typescript
 // Example: Give Sales Manager role customer and order management permissions
 const permission = {
-  target: "ROLE",
-  roleId: "sales_manager",
-  resourceId: "customer",
-  actions: ["view", "create", "edit", "delete"]
+  target: 'ROLE',
+  roleId: 'sales_manager',
+  resourceId: 'customer',
+  actions: ['view', 'create', 'edit', 'delete'],
 };
 ```
 
 #### c) Organization-Based Permission
+
 Assigning permission to an entire organization:
 
 ```typescript
 // Example: Give Branch X permission to view orders
 const permission = {
-  target: "ORGANIZATION",
-  organizationId: "branch_x",
-  resourceId: "order",
-  actions: ["view"]
+  target: 'ORGANIZATION',
+  organizationId: 'branch_x',
+  resourceId: 'order',
+  actions: ['view'],
 };
 ```
 
@@ -152,11 +159,11 @@ const permission = {
 // Permission check within component
 const CanEditProduct = () => {
   const hasPermission = usePermission("product", "edit");
-  
+
   if (!hasPermission) {
     return <div>You don't have permission for this operation</div>;
   }
-  
+
   return <EditProductForm />;
 };
 ```
@@ -167,10 +174,10 @@ const CanEditProduct = () => {
 // Permission check in API route
 export async function PUT(request: NextRequest) {
   try {
-    await requirePermission("product", "edit");
+    await requirePermission('product', 'edit');
     // Continue if permission exists
   } catch (error) {
-    return new NextResponse("Unauthorized", { status: 401 });
+    return new NextResponse('Unauthorized', { status: 401 });
   }
 }
 ```
@@ -178,18 +185,21 @@ export async function PUT(request: NextRequest) {
 ### 4. API Endpoints
 
 #### Permission Management
+
 - `GET /api/administrations/permissions`: List all permissions
 - `POST /api/administrations/permissions`: Create new permission
 - `PUT /api/administrations/permissions/[id]`: Update permission
 - `DELETE /api/administrations/permissions/[id]`: Delete permission
 
 #### Resource Management
+
 - `GET /api/administrations/resources`: List all resources
 - `POST /api/administrations/resources`: Create new resource
 - `PUT /api/administrations/resources/[id]`: Update resource
 - `DELETE /api/administrations/resources/[id]`: Delete resource
 
 #### Action Management
+
 - `GET /api/administrations/actions`: List all actions
 - `POST /api/administrations/actions`: Create new action
 - `PUT /api/administrations/actions/[id]`: Update action
@@ -198,65 +208,63 @@ export async function PUT(request: NextRequest) {
 ### 5. Example Usage Scenarios
 
 #### Scenario 1: Sales Team Permissions
+
 ```typescript
 // 1. Create Sales Role
 const salesRole = await prisma.role.create({
-  data: { name: "Sales Team", description: "Sales team members" }
+  data: { name: 'Sales Team', description: 'Sales team members' },
 });
 
 // 2. Assign Permissions to Sales Role
 const permissions = [
   {
-    target: "ROLE",
+    target: 'ROLE',
     roleId: salesRole.id,
-    resourceId: "customer",
-    actions: ["view", "create", "edit"]
+    resourceId: 'customer',
+    actions: ['view', 'create', 'edit'],
   },
   {
-    target: "ROLE",
+    target: 'ROLE',
     roleId: salesRole.id,
-    resourceId: "order",
-    actions: ["view", "create"]
-  }
+    resourceId: 'order',
+    actions: ['view', 'create'],
+  },
 ];
 
 // 3. Apply Permissions
-await Promise.all(
-  permissions.map(perm => prisma.permission.create({ data: perm }))
-);
+await Promise.all(permissions.map((perm) => prisma.permission.create({ data: perm })));
 ```
 
 #### Scenario 2: Regional Manager Permissions
+
 ```typescript
 // 1. Create Regional Manager Role
 const managerRole = await prisma.role.create({
-  data: { name: "Regional Manager", description: "Regional management team" }
+  data: { name: 'Regional Manager', description: 'Regional management team' },
 });
 
 // 2. Create Region Organization
 const regionOrg = await prisma.organization.create({
-  data: { name: "East Region", code: "EAST_001" }
+  data: { name: 'East Region', code: 'EAST_001' },
 });
 
 // 3. Assign Organization-wide Permissions
 const permissions = [
   {
-    target: "ORGANIZATION",
+    target: 'ORGANIZATION',
     organizationId: regionOrg.id,
-    resourceId: "sales_report",
-    actions: ["view"]
+    resourceId: 'sales_report',
+    actions: ['view'],
   },
   {
-    target: "ORGANIZATION",
+    target: 'ORGANIZATION',
     organizationId: regionOrg.id,
-    resourceId: "performance_metrics",
-    actions: ["view", "edit"]
-  }
+    resourceId: 'performance_metrics',
+    actions: ['view', 'edit'],
+  },
 ];
 
-await Promise.all(
-  permissions.map(perm => prisma.permission.create({ data: perm }))
-);
+await Promise.all(permissions.map((perm) => prisma.permission.create({ data: perm })));
 ```
 
 ## Notification System
@@ -303,56 +311,61 @@ export const useNotification = () => {
 ```
 
 Usage in API Client:
+
 ```typescript
 // Success case (POST/PUT/DELETE)
 if (['POST', 'PUT', 'DELETE'].includes(response.config.method?.toUpperCase() || '')) {
-  const message = response.config.method?.toUpperCase() === 'DELETE' 
-    ? 'Deletion successful!'
-    : 'Process completed successfully';
-  
+  const message =
+    response.config.method?.toUpperCase() === 'DELETE'
+      ? 'Deletion successful!'
+      : 'Process completed successfully';
+
   const showNotification = window.__showNotification as ShowNotificationFunction;
   showNotification?.('success', message);
 }
 
 // Error case
-const errorMessage = error.response?.data as string || error.message;
+const errorMessage = (error.response?.data as string) || error.message;
 const showNotification = window.__showNotification as ShowNotificationFunction;
-const truncatedMessage = errorMessage.length > 500 
-  ? errorMessage.slice(0, 497) + '...' 
-  : errorMessage;
+const truncatedMessage =
+  errorMessage.length > 500 ? errorMessage.slice(0, 497) + '...' : errorMessage;
 showNotification?.('error', 'Hata', truncatedMessage);
 ```
 
 ### Best Practices
 
 1. **Consistent Usage**
+
    - Use the same notification system across the entire application
    - Maintain consistent message formats and durations
 
 2. **Error Handling**
+
    - Always provide clear error messages
    - Include relevant error details in the description
    - Add action buttons for error recovery when applicable
 
 3. **User Experience**
+
    - Keep notifications concise and informative
    - Use appropriate notification types
    - Don't overwhelm users with too many notifications
    - Consider notification stacking and positioning
 
 4. **Integration with API Calls**
+
 ```typescript
 const apiCall = async () => {
   try {
     const response = await fetch('/api/data');
     const data = await response.json();
-    
+
     showNotification({
       type: 'success',
       message: 'Data Retrieved',
-      description: 'Successfully fetched the requested data.'
+      description: 'Successfully fetched the requested data.',
     });
-    
+
     return data;
   } catch (error) {
     showNotification({
@@ -360,7 +373,7 @@ const apiCall = async () => {
       message: 'API Error',
       description: error.message,
     });
-    
+
     throw error;
   }
 };
@@ -369,21 +382,25 @@ const apiCall = async () => {
 ### Notification Types
 
 1. **Success Notifications**
+
 ```typescript
 showNotification('success', 'Order Created', 'Order #12345 has been successfully created');
 ```
 
 2. **Error Notifications**
+
 ```typescript
 showNotification('error', 'API Error', 'Failed to process your request');
 ```
 
 3. **Warning Notifications**
+
 ```typescript
 showNotification('warning', 'Low Stock Alert', 'Product stock is below the minimum threshold');
 ```
 
 4. **Info Notifications**
+
 ```typescript
 showNotification('info', 'System Update', 'A system update is scheduled for tonight at 00:00');
 ```
@@ -395,11 +412,15 @@ showNotification('info', 'System Update', 'A system update is scheduled for toni
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     // Success notification for POST, PUT, DELETE requests
-    if (typeof window !== 'undefined' && ['POST', 'PUT', 'DELETE'].includes(response.config.method?.toUpperCase() || '')) {
-      const message = response.config.method?.toUpperCase() === 'DELETE' 
-        ? 'Deletion successful!'
-        : 'Process completed successfully';
-      
+    if (
+      typeof window !== 'undefined' &&
+      ['POST', 'PUT', 'DELETE'].includes(response.config.method?.toUpperCase() || '')
+    ) {
+      const message =
+        response.config.method?.toUpperCase() === 'DELETE'
+          ? 'Deletion successful!'
+          : 'Process completed successfully';
+
       const showNotification = window.__showNotification as ShowNotificationFunction;
       showNotification?.('success', message);
     }
@@ -412,13 +433,12 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    const errorMessage = error.response?.data as string || error.message;
-    
+    const errorMessage = (error.response?.data as string) || error.message;
+
     if (typeof window !== 'undefined') {
       const showNotification = window.__showNotification as ShowNotificationFunction;
-      const truncatedMessage = errorMessage.length > 500 
-        ? errorMessage.slice(0, 497) + '...' 
-        : errorMessage;
+      const truncatedMessage =
+        errorMessage.length > 500 ? errorMessage.slice(0, 497) + '...' : errorMessage;
       showNotification?.('error', 'Hata', truncatedMessage);
     }
 
@@ -434,7 +454,7 @@ const handleFormSubmit = async (values: FormValues) => {
   try {
     await validateForm(values);
     await submitForm(values);
-    
+
     showNotification('success', 'Form Submitted', 'Your form has been successfully submitted');
   } catch (error) {
     if (error instanceof ValidationError) {
@@ -458,38 +478,36 @@ async function checkPermission(
   resourceSlug: string,
   actionSlug: string,
   organizationId?: string
-): Promise<boolean>
+): Promise<boolean>;
 
 // 2. Permission requirement
 async function requirePermission(
   resourceSlug: string,
   actionSlug: string,
   organizationId?: string
-): Promise<void>
+): Promise<void>;
 
 // 3. React hook
-function usePermission(
-  resourceSlug: string,
-  actionSlug: string,
-  organizationId?: string
-): boolean
+function usePermission(resourceSlug: string, actionSlug: string, organizationId?: string): boolean;
 
 // 4. Higher-order component
 function withPermission(
   Component: React.ComponentType<P>,
   resourceSlug: string,
   actionSlug: string
-): React.FC<P>
+): React.FC<P>;
 ```
 
 #### b) Permission Check Hierarchy
 
 1. **System Admin Check**
+
    ```typescript
    if (session.user.role === 'ADMIN') return true;
    ```
 
 2. **Direct Permission Check**
+
    ```typescript
    const hasDirectPermission = checkResourcePermission(
      session.user.permissions,
@@ -499,23 +517,16 @@ function withPermission(
    ```
 
 3. **Role-Based Permission Check**
+
    ```typescript
    const rolePermissions = membership.role?.permissions || [];
-   const hasRolePermission = checkResourcePermission(
-     rolePermissions,
-     resourceSlug,
-     actionSlug
-   );
+   const hasRolePermission = checkResourcePermission(rolePermissions, resourceSlug, actionSlug);
    ```
 
 4. **Organization Permission Check**
    ```typescript
    const organizationPermissions = membership.organization.permissions;
-   return checkResourcePermission(
-     organizationPermissions,
-     resourceSlug,
-     actionSlug
-   );
+   return checkResourcePermission(organizationPermissions, resourceSlug, actionSlug);
    ```
 
 ### 4. Next.js 15 Route Handler Rules
@@ -524,19 +535,13 @@ function withPermission(
 
 ```typescript
 // ✅ CORRECT USAGE
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   // ... operations
 }
 
 // ❌ INCORRECT USAGE
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params; // missing await!
   // ... operations
 }
@@ -546,10 +551,7 @@ export async function GET(
 
 ```typescript
 // 1. Single parameter
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   // ... operations
 }
@@ -557,10 +559,14 @@ export async function GET(
 // 2. Multiple parameters
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ 
-    organizationId: string; 
-    userId: string 
-  }> }
+  {
+    params,
+  }: {
+    params: Promise<{
+      organizationId: string;
+      userId: string;
+    }>;
+  }
 ) {
   const { organizationId, userId } = await params;
   // ... operations
@@ -595,14 +601,14 @@ import { getRequest, postRequest, putRequest, deleteRequest } from '@/lib/apiCli
 const users = await getRequest<User[]>('/users');
 
 // POST request
-const newUser = await postRequest<User>('/users', { 
+const newUser = await postRequest<User>('/users', {
   name: 'John',
-  email: 'john@example.com' 
+  email: 'john@example.com',
 });
 
 // PUT request
-const updated = await putRequest<User>(`/users/${id}`, { 
-  name: 'Updated Name' 
+const updated = await putRequest<User>(`/users/${id}`, {
+  name: 'Updated Name',
 });
 
 // DELETE request
@@ -612,16 +618,19 @@ const deleted = await deleteRequest<boolean>(`/users/${id}`);
 #### Features
 
 1. **Automatic API Prefix**
+
    - All requests are automatically prefixed with `/api`
    - Example: `/users` becomes `/api/users`
 
 2. **Automatic Notifications**
+
    ```typescript
    // Success notifications (for POST, PUT, DELETE)
    if (['POST', 'PUT', 'DELETE'].includes(response.config.method?.toUpperCase() || '')) {
-     const message = response.config.method?.toUpperCase() === 'DELETE' 
-       ? 'Deletion successful!'
-       : 'Process completed successfully';
+     const message =
+       response.config.method?.toUpperCase() === 'DELETE'
+         ? 'Deletion successful!'
+         : 'Process completed successfully';
      showNotification?.('success', message);
    }
 
@@ -632,6 +641,7 @@ const deleted = await deleteRequest<boolean>(`/users/${id}`);
      description: errorMessage,
    });
    ```
+
    - Success cases:
      - Shows for POST/PUT/DELETE operations
      - DELETE: "Deletion successful!"
@@ -641,6 +651,7 @@ const deleted = await deleteRequest<boolean>(`/users/${id}`);
      - Shows error message in description
 
 3. **Retry Configuration**
+
    - 3 retry attempts for failed requests
    - Uses exponential backoff
    - Only retries on:
@@ -649,6 +660,7 @@ const deleted = await deleteRequest<boolean>(`/users/${id}`);
    - Does not retry if response contains error data
 
 4. **Type Safety**
+
    ```typescript
    interface User {
      id: number;
@@ -686,37 +698,41 @@ interface RequestOptions {
 // With custom headers
 const response = await getRequest<User[]>('/users', {
   headers: {
-    'Authorization': 'Bearer token',
-    'Custom-Header': 'value'
-  }
+    Authorization: 'Bearer token',
+    'Custom-Header': 'value',
+  },
 });
 
 // With query parameters
 const filtered = await getRequest<User[]>('/users', {
   role: 'admin',
-  active: true
+  active: true,
 });
 ```
 
 ## Installation and Development
 
 1. Clone the repository
+
 ```bash
 git clone https://github.com/yourusername/nextstarter.git
 ```
 
 2. Install dependencies
+
 ```bash
 npm install
 ```
 
 3. Prepare the database
+
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
 4. Start the development server
+
 ```bash
 npm run dev
 ```
@@ -755,6 +771,7 @@ SUPER_ADMIN_PASSWORD="your-secure-password"
 1. **Database Connection**: The `DATABASE_URL` variable contains PostgreSQL connection information. Connection string format: `postgres://user:password@host:port/database?sslmode=disable`
 
 2. **NextAuth.js Configuration**:
+
    - `NEXTAUTH_SECRET`: Secret key used for session security
    - `NEXTAUTH_URL`: URL where the application runs (usually `http://localhost:3000` in development)
    - `NEXTAUTH_SESSION_MAX_AGE`: Maximum session duration for session security (in seconds)
@@ -790,6 +807,7 @@ npm run format      # Format code with Prettier
 The `prisma/seed.ts` file creates initial data:
 
 1. **Default Resources**
+
    ```typescript
    // Example resources
    const defaultResources = [
@@ -801,13 +819,14 @@ The `prisma/seed.ts` file creates initial data:
    ```
 
 2. **Default Actions**
+
    ```typescript
    const defaultActions = [
      { name: 'VIEW', slug: 'view' },
      { name: 'CREATE', slug: 'create' },
      { name: 'EDIT', slug: 'edit' },
      { name: 'DELETE', slug: 'delete' },
-     { name: 'MANAGE', slug: 'manage' }
+     { name: 'MANAGE', slug: 'manage' },
    ];
    ```
 

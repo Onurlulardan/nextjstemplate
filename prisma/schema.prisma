@@ -117,7 +117,7 @@ model User {
   lastName           String?
   phone              String?
   avatar             String?
-  role               UserRole   @default(ADMIN)
+  role               String   @default("MEMBER")
   status             UserStatus @default(ACTIVE)
   emailVerified      Boolean   @default(false)
   createdAt          DateTime  @default(now())
@@ -196,7 +196,7 @@ model SecurityLog {
 
 enum UserRole {
   ADMIN
-  USER
+  MEMBER
 }
 
 enum UserStatus {

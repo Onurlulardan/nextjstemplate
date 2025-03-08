@@ -54,7 +54,7 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
       layout="vertical"
       onFinish={onSubmit}
       initialValues={{
-        role: UserRole.USER,
+        role: UserRole.MEMBER,
         status: UserStatus.ACTIVE,
         ...initialValues,
       }}
@@ -104,8 +104,8 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
 
       <Form.Item label="Role" name="role">
         <Select loading={loadingRoles}>
-          {roles.map(role => (
-            <Select.Option key={role.id} value={role.id}>
+          {roles.map((role) => (
+            <Select.Option key={role.id} value={role.name}>
               {role.name}
             </Select.Option>
           ))}

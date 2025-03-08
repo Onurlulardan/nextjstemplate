@@ -70,7 +70,7 @@ export function PermissionForm({ initialValues, onSubmit, loading }: PermissionF
         userId: initialValues.user?.id,
         roleId: initialValues.role?.id,
         organizationId: initialValues.organization?.id,
-        actionIds: initialValues.actions?.map(pa => pa.action.id),
+        actionIds: initialValues.actions?.map((pa) => pa.action.id),
       });
       setTargetType(initialValues.target);
     }
@@ -84,7 +84,7 @@ export function PermissionForm({ initialValues, onSubmit, loading }: PermissionF
         getRequest<Action[]>('/administrations/actions'),
         getRequest<User[]>('/administrations/users'),
         getRequest<Role[]>('/administrations/roles'),
-        getRequest<Organization[]>('/administrations/organizations')
+        getRequest<Organization[]>('/administrations/organizations'),
       ]);
 
       setFormData({
@@ -92,7 +92,7 @@ export function PermissionForm({ initialValues, onSubmit, loading }: PermissionF
         actions,
         users,
         roles,
-        organizations
+        organizations,
       });
     } catch (error) {
       console.error('Error fetching form data:', error);
@@ -121,12 +121,7 @@ export function PermissionForm({ initialValues, onSubmit, loading }: PermissionF
   };
 
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      onFinish={handleSubmit}
-      disabled={loadingData}
-    >
+    <Form form={form} layout="vertical" onFinish={handleSubmit} disabled={loadingData}>
       <Form.Item
         name="resourceId"
         label="Resource"
@@ -135,7 +130,7 @@ export function PermissionForm({ initialValues, onSubmit, loading }: PermissionF
         <Select
           placeholder="Select resource"
           loading={loadingData}
-          options={formData.resources.map(resource => ({
+          options={formData.resources.map((resource) => ({
             label: `${resource.name} (${resource.slug})`,
             value: resource.id,
           }))}
@@ -169,7 +164,7 @@ export function PermissionForm({ initialValues, onSubmit, loading }: PermissionF
           <Select
             placeholder="Select user"
             loading={loadingData}
-            options={formData.users.map(user => ({
+            options={formData.users.map((user) => ({
               label: `${user.firstName} ${user.lastName} (${user.email})`,
               value: user.id,
             }))}
@@ -188,7 +183,7 @@ export function PermissionForm({ initialValues, onSubmit, loading }: PermissionF
           <Select
             placeholder="Select role"
             loading={loadingData}
-            options={formData.roles.map(role => ({
+            options={formData.roles.map((role) => ({
               label: `${role.name}${role.organizationId ? ' (Organization Role)' : ' (Global Role)'}`,
               value: role.id,
             }))}
@@ -207,7 +202,7 @@ export function PermissionForm({ initialValues, onSubmit, loading }: PermissionF
           <Select
             placeholder="Select organization"
             loading={loadingData}
-            options={formData.organizations.map(org => ({
+            options={formData.organizations.map((org) => ({
               label: org.name,
               value: org.id,
             }))}
@@ -226,7 +221,7 @@ export function PermissionForm({ initialValues, onSubmit, loading }: PermissionF
           placeholder="Select actions"
           mode="multiple"
           loading={loadingData}
-          options={formData.actions.map(action => ({
+          options={formData.actions.map((action) => ({
             label: `${action.name} (${action.slug})`,
             value: action.id,
           }))}

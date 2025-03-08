@@ -1,15 +1,33 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Card, Button, Typography, Tabs, TabsProps, Drawer, Modal, Dropdown, MenuProps } from 'antd';
-import { PlusOutlined, SafetyCertificateOutlined, AppstoreOutlined, ThunderboltOutlined, EditOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
+import {
+  Card,
+  Button,
+  Typography,
+  Tabs,
+  TabsProps,
+  Drawer,
+  Modal,
+  Dropdown,
+  MenuProps,
+} from 'antd';
+import {
+  PlusOutlined,
+  SafetyCertificateOutlined,
+  AppstoreOutlined,
+  ThunderboltOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  MoreOutlined,
+} from '@ant-design/icons';
 import { usePermission } from '@/lib/auth/permissions';
 import { DataGrid } from '@/core/components/datagrid';
 import { Permission, Resource, Action } from '@prisma/client';
 import { PermissionForm } from './components/permission-form';
 import { ResourceForm } from './components/resource-form';
 import { ActionForm } from './components/action-form';
-import { getRequest, postRequest, putRequest, deleteRequest  } from '@/lib/apiClient';
+import { getRequest, postRequest, putRequest, deleteRequest } from '@/lib/apiClient';
 
 const { Title } = Typography;
 
@@ -60,7 +78,9 @@ export default function PermissionsPage() {
   const [permissionDrawerVisible, setPermissionDrawerVisible] = useState(false);
   const [resourceDrawerVisible, setResourceDrawerVisible] = useState(false);
   const [actionDrawerVisible, setActionDrawerVisible] = useState(false);
-  const [selectedPermission, setSelectedPermission] = useState<PermissionWithRelations | null>(null);
+  const [selectedPermission, setSelectedPermission] = useState<PermissionWithRelations | null>(
+    null
+  );
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
   const [formLoading, setFormLoading] = useState(false);
@@ -116,9 +136,9 @@ export default function PermissionsPage() {
     setFormLoading(true);
     try {
       let endpoint = '';
-      
+
       if (activeTab === 'permissions') {
-        endpoint = selectedPermission 
+        endpoint = selectedPermission
           ? `/administrations/permissions/${selectedPermission.id}`
           : '/administrations/permissions';
       } else if (activeTab === 'resources') {
@@ -238,8 +258,8 @@ export default function PermissionsPage() {
     {
       title: 'Actions',
       key: 'actions',
-      render: (record: PermissionWithRelations) => 
-        record.actions.map(pa => pa.action.name).join(', '),
+      render: (record: PermissionWithRelations) =>
+        record.actions.map((pa) => pa.action.name).join(', '),
     },
   ];
 
@@ -391,10 +411,14 @@ export default function PermissionsPage() {
               )}
             </div>
           }
-          onRowDoubleClick={canEditPermission ? (record) => {
-            setSelectedPermission(record);
-            setPermissionDrawerVisible(true);
-          } : undefined}
+          onRowDoubleClick={
+            canEditPermission
+              ? (record) => {
+                  setSelectedPermission(record);
+                  setPermissionDrawerVisible(true);
+                }
+              : undefined
+          }
         />
       ),
     },
@@ -429,10 +453,14 @@ export default function PermissionsPage() {
               )}
             </div>
           }
-          onRowDoubleClick={canEditResource ? (record) => {
-            setSelectedResource(record);
-            setResourceDrawerVisible(true);
-          } : undefined}
+          onRowDoubleClick={
+            canEditResource
+              ? (record) => {
+                  setSelectedResource(record);
+                  setResourceDrawerVisible(true);
+                }
+              : undefined
+          }
         />
       ),
     },
@@ -467,10 +495,14 @@ export default function PermissionsPage() {
               )}
             </div>
           }
-          onRowDoubleClick={canEditAction ? (record) => {
-            setSelectedAction(record);
-            setActionDrawerVisible(true);
-          } : undefined}
+          onRowDoubleClick={
+            canEditAction
+              ? (record) => {
+                  setSelectedAction(record);
+                  setActionDrawerVisible(true);
+                }
+              : undefined
+          }
         />
       ),
     },
@@ -479,11 +511,7 @@ export default function PermissionsPage() {
   return (
     <>
       <Card>
-        <Tabs
-          activeKey={activeTab}
-          items={items}
-          onChange={setActiveTab}
-        />
+        <Tabs activeKey={activeTab} items={items} onChange={setActiveTab} />
       </Card>
 
       {/* Permission Drawer */}
@@ -521,11 +549,7 @@ export default function PermissionsPage() {
         open={actionDrawerVisible}
         onClose={closeDrawers}
       >
-        <ActionForm
-          initialValues={selectedAction}
-          onSubmit={handleSubmit}
-          loading={formLoading}
-        />
+        <ActionForm initialValues={selectedAction} onSubmit={handleSubmit} loading={formLoading} />
       </Drawer>
 
       {/* Delete Modal */}
@@ -543,7 +567,9 @@ export default function PermissionsPage() {
           loading: loading,
         }}
       >
-        <p>Are you sure you want to delete this {itemToDelete?.type}? This action cannot be undone.</p>
+        <p>
+          Are you sure you want to delete this {itemToDelete?.type}? This action cannot be undone.
+        </p>
       </Modal>
     </>
   );

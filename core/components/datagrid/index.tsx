@@ -29,16 +29,18 @@ export function DataGrid<T extends object>({
 }: DataGridProps<T>) {
   return (
     <div>
-      {headerContent && (
-        <div style={{ marginBottom: 16 }}>{headerContent}</div>
-      )}
+      {headerContent && <div style={{ marginBottom: 16 }}>{headerContent}</div>}
       <Table<T>
         {...tableProps}
         loading={loading}
-        onRow={onRowDoubleClick ? (record) => ({
-          onDoubleClick: () => onRowDoubleClick(record),
-          style: { cursor: 'pointer' }
-        }) : undefined}
+        onRow={
+          onRowDoubleClick
+            ? (record) => ({
+                onDoubleClick: () => onRowDoubleClick(record),
+                style: { cursor: 'pointer' },
+              })
+            : undefined
+        }
         pagination={{
           defaultPageSize: pageSize,
           showSizeChanger,

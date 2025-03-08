@@ -37,7 +37,7 @@ export default function OrganizationsPage() {
   const fetchOrganizations = async () => {
     try {
       const data = await getRequest<Organization[]>('/administrations/organizations');
-      const rootOrgs = data.filter(org => !org.parentId);
+      const rootOrgs = data.filter((org) => !org.parentId);
       setOrganizations(rootOrgs);
     } catch (error) {
       console.error(error);
@@ -48,7 +48,7 @@ export default function OrganizationsPage() {
 
   const handleDelete = async () => {
     if (!orgToDelete) return;
-    
+
     try {
       await deleteRequest(`/administrations/organizations/${orgToDelete.id}`);
       setDeleteModalVisible(false);
@@ -67,7 +67,7 @@ export default function OrganizationsPage() {
       } else {
         await postRequest('/administrations/organizations', values);
       }
-      
+
       setDrawerVisible(false);
       setSelectedOrg(null);
       fetchOrganizations();
@@ -85,7 +85,7 @@ export default function OrganizationsPage() {
       width: 100,
       render: (record: Organization) => {
         const menuItems: MenuProps['items'] = [];
-        
+
         if (canEdit) {
           menuItems.push({
             key: 'edit',
@@ -153,7 +153,7 @@ export default function OrganizationsPage() {
     {
       title: 'Members',
       key: 'members',
-      render: (record: any) => record._count?.members || 0
+      render: (record: any) => record._count?.members || 0,
     },
   ];
 
@@ -161,8 +161,8 @@ export default function OrganizationsPage() {
     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
       <Title level={2}>Organizations</Title>
       {canCreate && (
-        <Button 
-          type="primary" 
+        <Button
+          type="primary"
           icon={<PlusOutlined />}
           onClick={() => {
             setSelectedOrg(null);
@@ -186,7 +186,7 @@ export default function OrganizationsPage() {
           rowKey={(record) => `org-${record.id}`}
           expandable={{
             defaultExpandAllRows: true,
-            childrenColumnName: 'children'
+            childrenColumnName: 'children',
           }}
         />
       </Card>

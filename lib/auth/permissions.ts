@@ -6,9 +6,7 @@ import { OrganizationMembership, Permission } from './types';
 import React from 'react';
 
 function hasActionPermission(permission: Permission, actionSlug: string): boolean {
-  return permission.actions.some(
-    (a) => a.slug === actionSlug || a.slug === 'manage'
-  );
+  return permission.actions.some((a) => a.slug === actionSlug || a.slug === 'manage');
 }
 
 function checkResourcePermission(
@@ -19,8 +17,8 @@ function checkResourcePermission(
   return permissions.some(
     (p) =>
       // Check for specific resource permission
-      ((p.resource.slug === resourceSlug || p.resource.slug === '*') &&
-        hasActionPermission(p, actionSlug))
+      (p.resource.slug === resourceSlug || p.resource.slug === '*') &&
+      hasActionPermission(p, actionSlug)
   );
 }
 
@@ -54,41 +52,25 @@ export async function checkPermission(
 
     // Check role-based permissions
     const rolePermissions = membership.role?.permissions || [];
-    const hasRolePermission = checkResourcePermission(
-      rolePermissions,
-      resourceSlug,
-      actionSlug
-    );
+    const hasRolePermission = checkResourcePermission(rolePermissions, resourceSlug, actionSlug);
 
     if (hasRolePermission) return true;
 
     // Check organization-level permissions
     const organizationPermissions = membership.organization.permissions;
-    return checkResourcePermission(
-      organizationPermissions,
-      resourceSlug,
-      actionSlug
-    );
+    return checkResourcePermission(organizationPermissions, resourceSlug, actionSlug);
   }
 
   // If no organizationId is provided, check permissions across all organizations
   return session.user.memberships.some((membership: OrganizationMembership) => {
     // Check role-based permissions
     const rolePermissions = membership.role?.permissions || [];
-    const hasRolePermission = checkResourcePermission(
-      rolePermissions,
-      resourceSlug,
-      actionSlug
-    );
+    const hasRolePermission = checkResourcePermission(rolePermissions, resourceSlug, actionSlug);
 
     if (hasRolePermission) return true;
 
     // Check organization-level permissions
-    return checkResourcePermission(
-      membership.organization.permissions,
-      resourceSlug,
-      actionSlug
-    );
+    return checkResourcePermission(membership.organization.permissions, resourceSlug, actionSlug);
   });
 }
 
@@ -134,41 +116,25 @@ export function usePermission(
 
     // Check role-based permissions
     const rolePermissions = membership.role?.permissions || [];
-    const hasRolePermission = checkResourcePermission(
-      rolePermissions,
-      resourceSlug,
-      actionSlug
-    );
+    const hasRolePermission = checkResourcePermission(rolePermissions, resourceSlug, actionSlug);
 
     if (hasRolePermission) return true;
 
     // Check organization-level permissions
     const organizationPermissions = membership.organization.permissions;
-    return checkResourcePermission(
-      organizationPermissions,
-      resourceSlug,
-      actionSlug
-    );
+    return checkResourcePermission(organizationPermissions, resourceSlug, actionSlug);
   }
 
   // If no organizationId is provided, check permissions across all organizations
   return session.user.memberships.some((membership: OrganizationMembership) => {
     // Check role-based permissions
     const rolePermissions = membership.role?.permissions || [];
-    const hasRolePermission = checkResourcePermission(
-      rolePermissions,
-      resourceSlug,
-      actionSlug
-    );
+    const hasRolePermission = checkResourcePermission(rolePermissions, resourceSlug, actionSlug);
 
     if (hasRolePermission) return true;
 
     // Check organization-level permissions
-    return checkResourcePermission(
-      membership.organization.permissions,
-      resourceSlug,
-      actionSlug
-    );
+    return checkResourcePermission(membership.organization.permissions, resourceSlug, actionSlug);
   });
 }
 

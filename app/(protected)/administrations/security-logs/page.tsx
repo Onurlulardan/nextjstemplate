@@ -65,9 +65,7 @@ export default function SecurityLogsPage() {
       key: 'status',
       width: 100,
       render: (status: string) => (
-        <span style={{ color: status === 'SUCCESS' ? '#52c41a' : '#ff4d4f' }}>
-          {status}
-        </span>
+        <span style={{ color: status === 'SUCCESS' ? '#52c41a' : '#ff4d4f' }}>{status}</span>
       ),
     },
     {
@@ -80,7 +78,7 @@ export default function SecurityLogsPage() {
       title: 'User',
       key: 'user',
       width: 150,
-      render: (record: SecurityLog) => 
+      render: (record: SecurityLog) =>
         record.user ? `${record.user.firstName} ${record.user.lastName}` : '-',
     },
     {

@@ -1,21 +1,18 @@
-import { NextResponse, NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/auth-options";
-import { requirePermission } from "@/lib/auth/permissions";
+import { NextResponse, NextRequest } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/auth-options';
+import { requirePermission } from '@/lib/auth/permissions';
 
 // GET /api/permissions/[id]
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("permission", "view");
+    await requirePermission('permission', 'view');
 
     const { id } = await params;
 
@@ -53,28 +50,25 @@ export async function GET(
     });
 
     if (!permission) {
-      return new NextResponse("Permission not found", { status: 404 });
+      return new NextResponse('Permission not found', { status: 404 });
     }
 
     return NextResponse.json(permission);
   } catch (error) {
-    console.error("[PERMISSION_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[PERMISSION_GET]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
 // PUT /api/permissions/[id]
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("permission", "edit");
+    await requirePermission('permission', 'edit');
 
     const { id } = await params;
     const body = await request.json();
@@ -86,7 +80,7 @@ export async function PUT(
     });
 
     if (!existingPermission) {
-      return new NextResponse("Permission not found", { status: 404 });
+      return new NextResponse('Permission not found', { status: 404 });
     }
 
     // Delete existing permission actions
@@ -140,8 +134,8 @@ export async function PUT(
 
     return NextResponse.json(permission);
   } catch (error) {
-    console.error("[PERMISSION_PUT]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[PERMISSION_PUT]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
 
@@ -153,10 +147,10 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    await requirePermission("permission", "delete");
+    await requirePermission('permission', 'delete');
 
     const { id } = await params;
 
@@ -166,7 +160,7 @@ export async function DELETE(
     });
 
     if (!permission) {
-      return new NextResponse("Permission not found", { status: 404 });
+      return new NextResponse('Permission not found', { status: 404 });
     }
 
     // Delete permission (this will cascade delete related permission actions)
@@ -176,7 +170,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("[PERMISSION_DELETE]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    console.error('[PERMISSION_DELETE]', error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
