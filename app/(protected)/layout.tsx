@@ -26,13 +26,13 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ minHeight: '100vh', padding: 20 }}>
       <Sidebar collapsed={collapsed} />
       <Layout>
         <Navbar collapsed={collapsed} setCollapsed={setCollapsed} />
         <Content
           style={{
-            margin: '24px 16px',
+            margin: '24px 16px 0px 16px',
             padding: 24,
             background: token.colorBgContainer,
             borderRadius: '8px',

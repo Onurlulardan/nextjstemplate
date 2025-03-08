@@ -38,7 +38,7 @@ export default function Navbar({ collapsed, setCollapsed }: NavbarProps) {
         padding: '0 24px',
         background: token.colorBgContainer,
         margin: '0 16px',
-        borderRadius: '0 0 8px 8px',
+        borderRadius: '8px',
       }}
     >
       <div

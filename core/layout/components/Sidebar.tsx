@@ -31,7 +31,7 @@ export default function Sidebar({ collapsed }: SidebarProps) {
       trigger={null}
       collapsible
       collapsed={collapsed}
-      style={{ background: token.colorBgContainer }}
+      style={{ background: token.colorBgContainer, borderRadius: '8px' }}
     >
       {collapsed === false ? (
         <div style={{ height: 32, margin: 16 }}>
