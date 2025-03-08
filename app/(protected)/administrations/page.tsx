@@ -41,7 +41,7 @@ export default function AdministrationsPage() {
     redirect('/auth/login');
   }
 
-  const isAdmin = session.user.role === UserRole.ADMIN;
+  const isAdmin = session.user.role === UserRole?.ADMIN;
 
   return (
     <div className="p-8 max-w-7xl mx-auto">

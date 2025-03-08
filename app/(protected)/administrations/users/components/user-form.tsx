@@ -54,7 +54,7 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
       layout="vertical"
       onFinish={onSubmit}
       initialValues={{
-        role: UserRole.MEMBER,
+        role: UserRole?.MEMBER,
         status: UserStatus.ACTIVE,
         ...initialValues,
       }}
