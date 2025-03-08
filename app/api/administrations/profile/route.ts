@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         email: true,
         firstName: true,
         lastName: true,
-        role: true,
+        userRoles: true,
         permissions: {
           include: {
             resource: true,
@@ -85,7 +85,7 @@ export async function PUT(request: Request) {
         firstName: true,
         lastName: true,
         password: true,
-        role: true,
+        userRoles: true,
         permissions: {
           include: {
             resource: true,
@@ -159,7 +159,7 @@ export async function PUT(request: Request) {
         email: true,
         firstName: true,
         lastName: true,
-        role: true,
+        userRoles: true,
         permissions: {
           include: {
             resource: true,

@@ -21,7 +21,7 @@ export async function requireAuth() {
 
 export async function requireAdmin() {
   const user = await getCurrentUser();
-  if (!user || user.role !== 'ADMIN') {
+  if (!user || !user.userRoles.find((role) => role.role.name === 'ADMIN')) {
     redirect('/auth/unauthorized');
   }
   return user;

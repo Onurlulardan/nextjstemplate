@@ -61,6 +61,11 @@ export const authOptions: NextAuthOptions = {
                 },
               },
             },
+            userRoles: {
+              include: {
+                role: true,
+              },
+            },
             memberships: {
               include: {
                 organization: {
@@ -200,10 +205,19 @@ export const authOptions: NextAuthOptions = {
           console.error('Failed to create security log:', error);
         }
 
+        const userRoles = user.userRoles.map((ur) => ({
+          role: {
+            id: ur.role.id,
+            name: ur.role.name,
+            description: ur.role.description || '',
+          },
+        }));
+
         return {
           ...user,
           permissions: directPermissions,
           memberships,
+          userRoles,
         };
       },
     }),
@@ -216,10 +230,10 @@ export const authOptions: NextAuthOptions = {
         token.lastName = user.lastName;
         token.phone = user.phone;
         token.avatar = user.avatar;
-        token.role = user.role;
         token.status = user.status;
         token.permissions = user.permissions;
         token.memberships = user.memberships;
+        token.userRoles = user.userRoles;
       }
       return token;
     },
@@ -229,10 +243,10 @@ export const authOptions: NextAuthOptions = {
       session.user.lastName = token.lastName;
       session.user.phone = token.phone;
       session.user.avatar = token.avatar;
-      session.user.role = token.role;
       session.user.status = token.status;
       session.user.permissions = token.permissions;
       session.user.memberships = token.memberships;
+      session.user.userRoles = token.userRoles;
       return session;
     },
   },

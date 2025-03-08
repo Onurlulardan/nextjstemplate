@@ -55,8 +55,6 @@ export function RoleForm({ initialValues, onSubmit, loading }: RoleFormProps) {
     }
   };
 
-  const isAdmin = session?.user?.role === 'ADMIN';
-
   return (
     <Form
       form={form}
@@ -85,23 +83,21 @@ export function RoleForm({ initialValues, onSubmit, loading }: RoleFormProps) {
         <Input.TextArea placeholder="Enter role description" rows={4} showCount maxLength={500} />
       </Form.Item>
 
-      {isAdmin && (
-        <Form.Item
-          name="organizationId"
-          label="Organization"
-          help="Leave empty to create a global role"
-        >
-          <Select
-            placeholder="Select organization"
-            allowClear
-            loading={loadingOrgs}
-            options={organizations.map((org) => ({
-              label: org.name,
-              value: org.id,
-            }))}
-          />
-        </Form.Item>
-      )}
+      <Form.Item
+        name="organizationId"
+        label="Organization"
+        help="Leave empty to create a global role"
+      >
+        <Select
+          placeholder="Select organization"
+          allowClear
+          loading={loadingOrgs}
+          options={organizations.map((org) => ({
+            label: org.name,
+            value: org.id,
+          }))}
+        />
+      </Form.Item>
 
       <Form.Item
         name="isDefault"

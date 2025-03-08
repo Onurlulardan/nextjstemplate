@@ -29,7 +29,6 @@ export async function POST(req: Request) {
           firstName,
           lastName,
           phone,
-          role: 'ADMIN', // First user gets ADMIN role
         },
       });
 
