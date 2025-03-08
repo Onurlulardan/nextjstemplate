@@ -177,7 +177,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json(updatedRole);
     }
   } catch (error) {
-    console.error('[ROLE_PATCH]', error);
+    console.error('[ROLE_PUT]', error);
     return new NextResponse('Internal Error', { status: 500 });
   }
 }

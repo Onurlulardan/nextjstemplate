@@ -57,8 +57,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// PATCH /api/organizations/[id]
-export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+// PUT /api/organizations/[id]
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -120,7 +120,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     return NextResponse.json(updatedOrganization);
   } catch (error) {
-    console.error('[ORGANIZATION_PATCH]', error);
+    console.error('[ORGANIZATION_PUT]', error);
     return new NextResponse('Internal Error', { status: 500 });
   }
 }
