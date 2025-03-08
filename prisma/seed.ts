@@ -36,24 +36,9 @@ async function createDefaultResources() {
       description: 'Permission management',
     },
     {
-      name: 'PRODUCT',
-      slug: 'product',
-      description: 'Product management',
-    },
-    {
-      name: 'CUSTOMER',
-      slug: 'customer',
-      description: 'Customer management',
-    },
-    {
-      name: 'INVOICE',
-      slug: 'invoice',
-      description: 'Invoice management',
-    },
-    {
-      name: 'REPORT',
-      slug: 'report',
-      description: 'Report management',
+      name: 'SECURITY LOG',
+      slug: 'security-log',
+      description: 'Security logs management',
     },
   ];
 
@@ -232,7 +217,7 @@ async function createDefaultRolePermissions(roles: any[], resources: any[], acti
   // Member rolü için sınırlı izinler
   const memberRole = roles.find(r => r.name === 'Member');
   if (memberRole) {
-    const viewableResources = ['product', 'customer', 'invoice', 'report'];
+    const viewableResources = ['security-log'];
     const viewAction = actions.find(a => a.slug === 'view');
 
     for (const resourceSlug of viewableResources) {
