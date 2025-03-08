@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
-import { generateSlug } from '@/lib/utils/slug';
 
 export async function POST(req: Request) {
   try {
@@ -19,7 +18,7 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user and their organization in a transaction
+    // Create user and assign default role
     const result = await prisma.$transaction(async (prisma) => {
       // 1. Create the user
       const user = await prisma.user.create({
@@ -32,56 +31,32 @@ export async function POST(req: Request) {
         },
       });
 
-      // 2. Create their organization
-      const orgName = firstName ? `${firstName}'s Organization` : `New Organization`;
-      const organization = await prisma.organization.create({
-        data: {
-          name: orgName,
-          slug: generateSlug(orgName),
-          owner: {
-            connect: {
-              id: user.id,
-            },
-          },
-        },
-      });
-
-      // 3. Create owner role
-      const ownerRole = await prisma.role.create({
-        data: {
-          name: 'Super Admin',
-          description: 'Full administrative rights',
+      // 2. Find default role
+      const defaultRole = await prisma.role.findFirst({
+        where: {
           isDefault: true,
-          organization: {
-            connect: {
-              id: organization.id,
-            },
-          },
         },
       });
 
-      // 4. Create organization member with owner role
-      const member = await prisma.organizationMember.create({
-        data: {
-          organization: {
-            connect: {
-              id: organization.id,
+      // 3. If default role exists, assign it to the user
+      if (defaultRole) {
+        await prisma.userRole.create({
+          data: {
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+            role: {
+              connect: {
+                id: defaultRole.id,
+              },
             },
           },
-          user: {
-            connect: {
-              id: user.id,
-            },
-          },
-          role: {
-            connect: {
-              id: ownerRole.id,
-            },
-          },
-        },
-      });
+        });
+      }
 
-      return { user, organization, member };
+      return { user, defaultRole };
     });
 
     return NextResponse.json({
@@ -90,10 +65,12 @@ export async function POST(req: Request) {
         firstName: result.user.firstName,
         lastName: result.user.lastName,
       },
-      organization: {
-        name: result.organization.name,
-        slug: result.organization.slug,
-      },
+      role: result.defaultRole
+        ? {
+            name: result.defaultRole.name,
+            isDefault: result.defaultRole.isDefault,
+          }
+        : null,
     });
   } catch (error) {
     console.error('Registration error:', error);
