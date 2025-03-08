@@ -201,7 +201,7 @@ export default function RolesPage() {
           setSelectedRole(null);
         }}
         open={drawerVisible}
-        bodyStyle={{ paddingBottom: 80 }}
+        style={{ paddingBottom: 80 }}
       >
         <RoleForm initialValues={selectedRole} onSubmit={handleSubmit} loading={formLoading} />
       </Drawer>
