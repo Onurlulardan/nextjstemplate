@@ -188,6 +188,14 @@ export default function OrganizationsPage() {
             defaultExpandAllRows: true,
             childrenColumnName: 'children',
           }}
+          onRowDoubleClick={
+            canEdit
+              ? (record) => {
+                  setSelectedOrg(record);
+                  setDrawerVisible(true);
+                }
+              : undefined
+          }
         />
       </Card>
 
