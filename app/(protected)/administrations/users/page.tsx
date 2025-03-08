@@ -7,19 +7,19 @@ import { useRouter } from 'next/navigation';
 import { usePermission } from '@/lib/auth/permissions';
 import { DataGrid } from '@/core/components/datagrid';
 import { UserForm } from './components/user-form';
-import { User, UserRole, UserStatus } from '@prisma/client';
+import { User, UserStatus } from '@prisma/client';
 import { getRequest, postRequest, putRequest, deleteRequest } from '@/lib/apiClient';
 
 const { Title } = Typography;
 
-// Rol tipi tanımı
+// Role Type Definition
 type Role = {
   id: string;
   name: string;
   description: string;
 };
 
-// Kullanıcı tipi tanımı (şifre hariç)
+// User Type Definition (without password)
 type UserWithoutPassword = Omit<User, 'password'> & {
   role?: Role;
 };
