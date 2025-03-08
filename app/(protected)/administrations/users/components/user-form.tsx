@@ -1,8 +1,9 @@
 'use client';
 
-import { Form, Input, Select, Button } from 'antd';
+import { Form, Input, Select, Button, Spin } from 'antd';
 import { User, UserRole, UserStatus } from '@prisma/client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { getRequest } from '@/lib/apiClient';
 
 type UserFormData = Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'emailVerified' | 'avatar'>;
 
@@ -12,8 +13,17 @@ interface UserFormProps {
   loading: boolean;
 }
 
+interface Role {
+  id: string;
+  name: string;
+  description: string;
+  isDefault: boolean;
+}
+
 export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
   const [form] = Form.useForm();
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
 
   useEffect(() => {
     form.resetFields();
@@ -21,6 +31,22 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
       form.setFieldsValue(initialValues);
     }
   }, [form, initialValues]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      setLoadingRoles(true);
+      try {
+        const data = await getRequest<Role[]>('/administrations/roles');
+        setRoles(data);
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+      } finally {
+        setLoadingRoles(false);
+      }
+    };
+
+    fetchRoles();
+  }, []);
 
   return (
     <Form
@@ -77,9 +103,12 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
       </Form.Item>
 
       <Form.Item label="Role" name="role">
-        <Select>
-          <Select.Option value={UserRole.ADMIN}>Admin</Select.Option>
-          <Select.Option value={UserRole.USER}>User</Select.Option>
+        <Select loading={loadingRoles}>
+          {roles.map(role => (
+            <Select.Option key={role.id} value={role.id}>
+              {role.name}
+            </Select.Option>
+          ))}
         </Select>
       </Form.Item>
 
