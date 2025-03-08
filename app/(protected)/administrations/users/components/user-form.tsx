@@ -5,7 +5,9 @@ import { User, UserRole, UserStatus } from '@prisma/client';
 import { useEffect, useState } from 'react';
 import { getRequest } from '@/lib/apiClient';
 
-type UserFormData = Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'emailVerified' | 'avatar'>;
+type UserFormData = Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'emailVerified' | 'avatar' | 'role'> & {
+  roleId?: string;
+};
 
 interface UserFormProps {
   initialValues?: Partial<UserFormData>;
@@ -54,7 +56,7 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
       layout="vertical"
       onFinish={onSubmit}
       initialValues={{
-        role: UserRole?.MEMBER,
+        roleId: undefined,
         status: UserStatus.ACTIVE,
         ...initialValues,
       }}
@@ -102,10 +104,10 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
         <Input />
       </Form.Item>
 
-      <Form.Item label="Role" name="role">
+      <Form.Item label="Role" name="roleId">
         <Select loading={loadingRoles}>
           {roles.map((role) => (
-            <Select.Option key={role.id} value={role.name}>
+            <Select.Option key={role.id} value={role.id}>
               {role.name}
             </Select.Option>
           ))}

@@ -132,7 +132,13 @@ async function createDefaultRoles() {
   return roles;
 }
 
-async function createSuperAdmin() {
+async function createSuperAdmin(roles: any[]) {
+  // Find the ADMIN role
+  const adminRole = roles.find((r) => r.name === 'ADMIN');
+  if (!adminRole) {
+    throw new Error('ADMIN role not found');
+  }
+
   // Create super admin user
   const hashedPassword = await bcrypt.hash(SUPER_ADMIN_PASSWORD, 10);
 
@@ -140,13 +146,14 @@ async function createSuperAdmin() {
     where: { email: SUPER_ADMIN_MAIL },
     update: {
       password: hashedPassword,
+      roleId: adminRole.id,
     },
     create: {
       email: SUPER_ADMIN_MAIL,
       password: hashedPassword,
       firstName: SUPER_ADMIN_FIRSTNAME,
       lastName: SUPER_ADMIN_LASTNAME,
-      role: UserRole.ADMIN,
+      roleId: adminRole.id,
       status: UserStatus.ACTIVE,
       emailVerified: true,
     },
@@ -253,8 +260,8 @@ async function main() {
     // Create default roles
     const roles = await createDefaultRoles();
 
-    // Create super admin user
-    const superAdmin = await createSuperAdmin();
+    // Create super admin user with ADMIN role
+    const superAdmin = await createSuperAdmin(roles);
 
     // Create permissions for super admin
     await createSuperAdminPermissions(superAdmin, resources, actions);

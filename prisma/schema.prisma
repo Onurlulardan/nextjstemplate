@@ -100,6 +100,7 @@ model Role {
   isDefault      Boolean      @default(false)
   permissions    Permission[] @relation("RolePermissions")
   members        OrganizationMember[]
+  users          User[]
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   organizationId String?    
   createdAt      DateTime     @default(now())
@@ -117,7 +118,8 @@ model User {
   lastName           String?
   phone              String?
   avatar             String?
-  role               String   @default("MEMBER")
+  roleId             String?  
+  role               Role?    @relation(fields: [roleId], references: [id])
   status             UserStatus @default(ACTIVE)
   emailVerified      Boolean   @default(false)
   createdAt          DateTime  @default(now())
@@ -128,6 +130,8 @@ model User {
   ownedOrganizations Organization[] @relation("OrganizationOwner")
   permissions        Permission[]   @relation("UserPermissions")
   securityLogs       SecurityLog[]
+  
+  @@index([roleId])
 }
 
 // Organization model

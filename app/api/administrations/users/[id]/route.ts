@@ -26,7 +26,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         lastName: true,
         phone: true,
         avatar: true,
-        role: true,
+        roleId: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
         status: true,
         emailVerified: true,
         createdAt: true,
@@ -63,7 +70,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const { id } = await params;
     const body = await request.json();
-    const { email, password, firstName, lastName, phone, role, status } = body;
+    const { email, password, firstName, lastName, phone, roleId, status } = body;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -91,7 +98,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       ...(firstName && { firstName }),
       ...(lastName && { lastName }),
       ...(phone && { phone }),
-      ...(role && { role }),
+      ...(roleId && { roleId }),
       ...(status && { status }),
     };
 
@@ -111,11 +118,24 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         lastName: true,
         phone: true,
         avatar: true,
-        role: true,
+        roleId: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
         status: true,
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
+        memberships: {
+          include: {
+            organization: true,
+            role: true,
+          },
+        },
       },
     });
 

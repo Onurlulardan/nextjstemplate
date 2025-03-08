@@ -12,7 +12,17 @@ import { getRequest, postRequest, putRequest, deleteRequest } from '@/lib/apiCli
 
 const { Title } = Typography;
 
-type UserWithoutPassword = Omit<User, 'password'>;
+// Rol tipi tanımı
+type Role = {
+  id: string;
+  name: string;
+  description: string;
+};
+
+// Kullanıcı tipi tanımı (şifre hariç)
+type UserWithoutPassword = Omit<User, 'password'> & {
+  role?: Role;
+};
 
 export default function UsersPage() {
   const [users, setUsers] = useState<UserWithoutPassword[]>([]);
@@ -138,9 +148,12 @@ export default function UsersPage() {
     },
     {
       title: 'Role',
-      dataIndex: 'role',
       key: 'role',
-      render: (role: UserRole) => <Tag color={role === 'ADMIN' ? 'blue' : 'green'}>{role}</Tag>,
+      render: (record: UserWithoutPassword) => (
+        <Tag color={record.role?.name === 'ADMIN' ? 'blue' : 'green'}>
+          {record.role?.name || 'No Role'}
+        </Tag>
+      ),
     },
     {
       title: 'Status',
@@ -200,7 +213,10 @@ export default function UsersPage() {
         width={600}
       >
         <UserForm
-          initialValues={selectedUser || undefined}
+          initialValues={selectedUser ? {
+            ...selectedUser,
+            roleId: selectedUser.roleId || undefined
+          } : undefined}
           onSubmit={handleSubmit}
           loading={formLoading}
         />

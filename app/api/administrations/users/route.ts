@@ -23,11 +23,24 @@ export async function GET(request: NextRequest) {
         lastName: true,
         phone: true,
         avatar: true,
-        role: true,
+        roleId: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
         status: true,
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
+        memberships: {
+          include: {
+            organization: true,
+            role: true,
+          },
+        },
       },
     });
 
@@ -49,7 +62,7 @@ export async function POST(request: NextRequest) {
     await requirePermission('user', 'create');
 
     const body = await request.json();
-    const { email, password, firstName, lastName, phone, role, status } = body;
+    const { email, password, firstName, lastName, phone, roleId, status } = body;
 
     if (!email || !password) {
       return new NextResponse('Missing required fields', { status: 400 });
@@ -75,7 +88,7 @@ export async function POST(request: NextRequest) {
         firstName,
         lastName,
         phone,
-        role: role || 'USER',
+        roleId,
         status: status || 'ACTIVE',
       },
       select: {
@@ -85,11 +98,24 @@ export async function POST(request: NextRequest) {
         lastName: true,
         phone: true,
         avatar: true,
-        role: true,
+        roleId: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
         status: true,
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
+        memberships: {
+          include: {
+            organization: true,
+            role: true,
+          },
+        },
       },
     });
 
