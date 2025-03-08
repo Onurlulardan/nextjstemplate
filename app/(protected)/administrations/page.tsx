@@ -51,7 +51,7 @@ export default function AdministrationsPage() {
         <Text type="secondary">Manage your organizations and workspace</Text>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Profile Card */}
         <Card style={CARD_STYLES} styles={{ body: CARD_BODY_STYLES }}>
           <div className="flex flex-col h-full">
