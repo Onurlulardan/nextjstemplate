@@ -109,26 +109,73 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    // Update role
-    const updatedRole = await prisma.role.update({
-      where: { id },
-      data: {
-        ...(name && { name }),
-        ...(description !== undefined && { description }),
-        ...(isDefault !== undefined && { isDefault }),
-      },
-      include: {
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
+    if (isDefault === true) {
+      const updatedRole = await prisma.$transaction(async (tx) => {
+        if (existingRole.organizationId) {
+          await tx.role.updateMany({
+            where: {
+              organizationId: existingRole.organizationId,
+              isDefault: true,
+              id: { not: id },
+            },
+            data: {
+              isDefault: false,
+            },
+          });
+        } else {
+          await tx.role.updateMany({
+            where: {
+              organizationId: null,
+              isDefault: true,
+              id: { not: id },
+            },
+            data: {
+              isDefault: false,
+            },
+          });
+        }
+
+        return await tx.role.update({
+          where: { id },
+          data: {
+            ...(name && { name }),
+            ...(description !== undefined && { description }),
+            isDefault: true,
+          },
+          include: {
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        });
+      });
+
+      return NextResponse.json(updatedRole);
+    } else {
+      const updatedRole = await prisma.role.update({
+        where: { id },
+        data: {
+          ...(name && { name }),
+          ...(description !== undefined && { description }),
+          ...(isDefault !== undefined && { isDefault }),
+        },
+        include: {
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return NextResponse.json(updatedRole);
+      return NextResponse.json(updatedRole);
+    }
   } catch (error) {
     console.error('[ROLE_PATCH]', error);
     return new NextResponse('Internal Error', { status: 500 });
@@ -168,9 +215,12 @@ export async function DELETE(
 
     // Check if role has users
     if (role._count.userRoles > 0) {
-      return new NextResponse('Cannot delete role with assigned users. Remove users from this role first.', {
-        status: 400,
-      });
+      return new NextResponse(
+        'Cannot delete role with assigned users. Remove users from this role first.',
+        {
+          status: 400,
+        }
+      );
     }
 
     // Delete role

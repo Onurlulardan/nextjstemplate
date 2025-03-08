@@ -79,26 +79,71 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create role
-    const role = await prisma.role.create({
-      data: {
-        name,
-        description,
-        isDefault: isDefault || false,
-        organizationId,
-      },
-      include: {
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
+    if (isDefault) {
+      const role = await prisma.$transaction(async (tx) => {
+        if (organizationId) {
+          await tx.role.updateMany({
+            where: {
+              organizationId,
+              isDefault: true,
+            },
+            data: {
+              isDefault: false,
+            },
+          });
+        } else {
+          await tx.role.updateMany({
+            where: {
+              organizationId: null,
+              isDefault: true,
+            },
+            data: {
+              isDefault: false,
+            },
+          });
+        }
+
+        return await tx.role.create({
+          data: {
+            name,
+            description,
+            isDefault: true,
+            organizationId,
+          },
+          include: {
+            organization: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        });
+      });
+
+      return NextResponse.json(role, { status: 201 });
+    } else {
+      const role = await prisma.role.create({
+        data: {
+          name,
+          description,
+          isDefault: false,
+          organizationId,
+        },
+        include: {
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return NextResponse.json(role, { status: 201 });
+      return NextResponse.json(role, { status: 201 });
+    }
   } catch (error) {
     console.error('[ROLES_POST]', error);
     return new NextResponse('Internal Error', { status: 500 });
