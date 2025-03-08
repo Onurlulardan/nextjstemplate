@@ -517,7 +517,7 @@ export default function PermissionsPage() {
       {/* Permission Drawer */}
       <Drawer
         title={`${selectedPermission ? 'Edit' : 'Create'} Permission`}
-        width={600}
+        width={720}
         open={permissionDrawerVisible}
         onClose={closeDrawers}
       >
@@ -531,7 +531,7 @@ export default function PermissionsPage() {
       {/* Resource Drawer */}
       <Drawer
         title={`${selectedResource ? 'Edit' : 'Create'} Resource`}
-        width={600}
+        width={720}
         open={resourceDrawerVisible}
         onClose={closeDrawers}
       >
@@ -545,7 +545,7 @@ export default function PermissionsPage() {
       {/* Action Drawer */}
       <Drawer
         title={`${selectedAction ? 'Edit' : 'Create'} Action`}
-        width={600}
+        width={720}
         open={actionDrawerVisible}
         onClose={closeDrawers}
       >

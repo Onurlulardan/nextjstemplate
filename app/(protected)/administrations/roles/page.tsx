@@ -195,7 +195,7 @@ export default function RolesPage() {
 
       <Drawer
         title={`${selectedRole ? 'Edit' : 'Create'} Role`}
-        width={560}
+        width={720}
         onClose={() => {
           setDrawerVisible(false);
           setSelectedRole(null);

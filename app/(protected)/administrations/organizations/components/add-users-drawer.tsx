@@ -58,7 +58,7 @@ export function AddUsersDrawer({ organization, open, onClose }: AddUsersDrawerPr
       placement="right"
       onClose={onClose}
       open={open}
-      width={400}
+      width={720}
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Form.Item

@@ -227,7 +227,7 @@ export default function UsersPage() {
           setDrawerVisible(false);
           setSelectedUser(null);
         }}
-        width={600}
+        width={720}
       >
         <UserForm
           initialValues={selectedUser ? {
