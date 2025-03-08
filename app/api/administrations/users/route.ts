@@ -23,12 +23,15 @@ export async function GET(request: NextRequest) {
         lastName: true,
         phone: true,
         avatar: true,
-        roleId: true,
-        role: {
+        userRoles: {
           select: {
-            id: true,
-            name: true,
-            description: true,
+            role: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+              },
+            },
           },
         },
         status: true,
@@ -62,7 +65,7 @@ export async function POST(request: NextRequest) {
     await requirePermission('user', 'create');
 
     const body = await request.json();
-    const { email, password, firstName, lastName, phone, roleId, status } = body;
+    const { email, password, firstName, lastName, phone, roleIds, status } = body;
 
     if (!email || !password) {
       return new NextResponse('Missing required fields', { status: 400 });
@@ -80,43 +83,63 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hash(password, 12);
 
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        phone,
-        roleId,
-        status: status || 'ACTIVE',
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-        avatar: true,
-        roleId: true,
-        role: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          firstName,
+          lastName,
+          phone,
+          status: status || 'ACTIVE',
+        },
+      });
+      
+      if (roleIds && roleIds.length > 0) {
+        await Promise.all(
+          roleIds.map((roleId: string) =>
+            tx.userRole.create({
+              data: {
+                userId: newUser.id,
+                roleId,
+              },
+            })
+          )
+        );
+      }
+      
+      return await tx.user.findUnique({
+        where: { id: newUser.id },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          avatar: true,
+          userRoles: {
+            select: {
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                },
+              },
+            },
+          },
+          status: true,
+          emailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+          memberships: {
+            include: {
+              organization: true,
+              role: true,
+            },
           },
         },
-        status: true,
-        emailVerified: true,
-        createdAt: true,
-        updatedAt: true,
-        memberships: {
-          include: {
-            organization: true,
-            role: true,
-          },
-        },
-      },
+      });
     });
 
     return NextResponse.json(user, { status: 201 });

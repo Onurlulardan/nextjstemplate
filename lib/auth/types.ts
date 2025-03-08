@@ -11,6 +11,14 @@ export interface Permission {
   }[];
 }
 
+export interface UserRoleWithDetails {
+  role: {
+    id: string;
+    name: string;
+    description: string;
+  };
+}
+
 export interface OrganizationRole {
   id: string;
   name: string;
@@ -39,7 +47,7 @@ declare module 'next-auth' {
       firstName: string | null;
       lastName: string | null;
       phone: string | null;
-      role: UserRole;
+      userRoles: UserRoleWithDetails[];
       status: UserStatus;
       permissions: Permission[];
       memberships: OrganizationMembership[];
@@ -53,7 +61,7 @@ declare module 'next-auth' {
     lastName: string | null;
     phone: string | null;
     avatar: string | null;
-    role: UserRole;
+    userRoles: UserRoleWithDetails[];
     status: UserStatus;
     permissions: Permission[];
     memberships: OrganizationMembership[];
@@ -68,7 +76,7 @@ declare module 'next-auth/jwt' {
     lastName: string | null;
     phone: string | null;
     avatar: string | null;
-    role: UserRole;
+    userRoles: UserRoleWithDetails[];
     status: UserStatus;
     permissions: Permission[];
     memberships: OrganizationMembership[];

@@ -26,12 +26,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         lastName: true,
         phone: true,
         avatar: true,
-        roleId: true,
-        role: {
+        userRoles: {
           select: {
-            id: true,
-            name: true,
-            description: true,
+            role: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+              },
+            },
           },
         },
         status: true,
@@ -70,7 +73,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const { id } = await params;
     const body = await request.json();
-    const { email, password, firstName, lastName, phone, roleId, status } = body;
+    const { email, password, firstName, lastName, phone, roleIds, status } = body;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -98,7 +101,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       ...(firstName && { firstName }),
       ...(lastName && { lastName }),
       ...(phone && { phone }),
-      ...(roleId && { roleId }),
       ...(status && { status }),
     };
 
@@ -107,36 +109,61 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updateData.password = await hash(password, 12);
     }
 
-    // Update user
-    const updatedUser = await prisma.user.update({
-      where: { id },
-      data: updateData,
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-        avatar: true,
-        roleId: true,
-        role: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: { id },
+        data: updateData,
+      });
+      
+      if (roleIds && roleIds.length > 0) {
+        await tx.userRole.deleteMany({
+          where: { userId: id },
+        });
+        
+        await Promise.all(
+          roleIds.map((roleId: string) =>
+            tx.userRole.create({
+              data: {
+                userId: id,
+                roleId,
+              },
+            })
+          )
+        );
+      }
+      
+      return tx.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          avatar: true,
+          userRoles: {
+            select: {
+              role: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                },
+              },
+            },
+          },
+          status: true,
+          emailVerified: true,
+          createdAt: true,
+          updatedAt: true,
+          memberships: {
+            include: {
+              organization: true,
+              role: true,
+            },
           },
         },
-        status: true,
-        emailVerified: true,
-        createdAt: true,
-        updatedAt: true,
-        memberships: {
-          include: {
-            organization: true,
-            role: true,
-          },
-        },
-      },
+      });
     });
 
     return NextResponse.json(updatedUser);

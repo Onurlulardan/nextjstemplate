@@ -100,7 +100,7 @@ model Role {
   isDefault      Boolean      @default(false)
   permissions    Permission[] @relation("RolePermissions")
   members        OrganizationMember[]
-  users          User[]
+  userRoles      UserRole[]    
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   organizationId String?    
   createdAt      DateTime     @default(now())
@@ -118,19 +118,32 @@ model User {
   lastName           String?
   phone              String?
   avatar             String?
-  roleId             String?  
-  role               Role?    @relation(fields: [roleId], references: [id])
   status             UserStatus @default(ACTIVE)
   emailVerified      Boolean   @default(false)
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
   // Relationships
+  userRoles          UserRole[]      
   memberships        OrganizationMember[]
   ownedOrganizations Organization[] @relation("OrganizationOwner")
   permissions        Permission[]   @relation("UserPermissions")
   securityLogs       SecurityLog[]
-  
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // İlişkiler
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])  
+  @@index([userId])
   @@index([roleId])
 }
 
@@ -198,7 +211,7 @@ model SecurityLog {
 
 // Enums
 
-enum UserRole {
+enum RoleType {
   ADMIN
   MEMBER
 }

@@ -146,16 +146,25 @@ async function createSuperAdmin(roles: any[]) {
     where: { email: SUPER_ADMIN_MAIL },
     update: {
       password: hashedPassword,
-      roleId: adminRole.id,
     },
     create: {
       email: SUPER_ADMIN_MAIL,
       password: hashedPassword,
       firstName: SUPER_ADMIN_FIRSTNAME,
       lastName: SUPER_ADMIN_LASTNAME,
-      roleId: adminRole.id,
       status: UserStatus.ACTIVE,
       emailVerified: true,
+    },
+  });
+
+  await prisma.userRole.deleteMany({
+    where: { userId: superAdmin.id },
+  });
+
+  await prisma.userRole.create({
+    data: {
+      userId: superAdmin.id,
+      roleId: adminRole.id,
     },
   });
 
@@ -164,14 +173,12 @@ async function createSuperAdmin(roles: any[]) {
 }
 
 async function createSuperAdminPermissions(superAdmin: any, resources: any[], actions: any[]) {
-  // Önce super admin'in mevcut izinlerini temizle
   await prisma.permission.deleteMany({
     where: {
       userId: superAdmin.id,
     },
   });
 
-  // Sadece wildcard (*) resource için tüm izinleri ekle
   const wildcardResource = resources.find((r) => r.slug === '*');
   if (wildcardResource) {
     const permission = await prisma.permission.create({
@@ -197,8 +204,8 @@ async function createSuperAdminPermissions(superAdmin: any, resources: any[], ac
 }
 
 async function createDefaultRolePermissions(roles: any[], resources: any[], actions: any[]) {
-  // Organization Admin rolü için izinler
-  const orgAdminRole = roles.find((r) => r.name === 'Organization Admin');
+  // Permission for Organization Admin role
+  const orgAdminRole = roles.find((r) => r.name === 'ORGANIZATION ADMIN');
   if (orgAdminRole) {
     for (const resource of resources) {
       const permission = await prisma.permission.create({
@@ -209,7 +216,7 @@ async function createDefaultRolePermissions(roles: any[], resources: any[], acti
         },
       });
 
-      // Her kaynak için tüm aksiyonları ekle
+      // Add all actions for each resource
       for (const action of actions) {
         await prisma.permissionAction.create({
           data: {
@@ -221,8 +228,8 @@ async function createDefaultRolePermissions(roles: any[], resources: any[], acti
     }
   }
 
-  // Member rolü için sınırlı izinler
-  const memberRole = roles.find((r) => r.name === 'Member');
+  // Permission for Member role
+  const memberRole = roles.find((r) => r.name === 'MEMBER');
   if (memberRole) {
     const viewableResources = ['security-log'];
     const viewAction = actions.find((a) => a.slug === 'view');

@@ -6,14 +6,12 @@ import {
   TeamOutlined,
   UserOutlined,
   ApartmentOutlined,
-  PlusOutlined,
   SafetyCertificateOutlined,
   LockOutlined,
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { usePermission } from '@/lib/auth/permissions';
-import { UserRole } from '@prisma/client';
 
 const { Title, Text } = Typography;
 
@@ -41,7 +39,7 @@ export default function AdministrationsPage() {
     redirect('/auth/login');
   }
 
-  const isAdmin = session.user.role === UserRole?.ADMIN;
+  const isAdmin = session.user.userRoles?.some(ur => ur.role.name === 'ADMIN');
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -72,7 +70,7 @@ export default function AdministrationsPage() {
                   {session.user.email}
                 </Text>
                 <Text type="secondary" className="block">
-                  Role: {session.user.role}
+                  Roles: {session.user.userRoles?.map(ur => ur.role.name).join(', ') || 'No Role'}
                 </Text>
                 <div className="flex flex-col space-y-2 mt-4">
                   <Text strong className="block">

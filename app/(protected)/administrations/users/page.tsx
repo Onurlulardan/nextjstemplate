@@ -19,9 +19,14 @@ type Role = {
   description: string;
 };
 
+// UserRole Type Definition
+type UserRole = {
+  role: Role;
+};
+
 // User Type Definition (without password)
 type UserWithoutPassword = Omit<User, 'password'> & {
-  role?: Role;
+  userRoles?: UserRole[];
 };
 
 export default function UsersPage() {
@@ -147,12 +152,24 @@ export default function UsersPage() {
       key: 'email',
     },
     {
-      title: 'Role',
-      key: 'role',
+      title: 'Roles',
+      key: 'roles',
       render: (record: UserWithoutPassword) => (
-        <Tag color={record.role?.name === 'ADMIN' ? 'blue' : 'green'}>
-          {record.role?.name || 'No Role'}
-        </Tag>
+        <>
+          {record.userRoles && record.userRoles.length > 0 ? (
+            record.userRoles.map((userRole, index) => (
+              <Tag 
+                key={index} 
+                color={userRole.role.name === 'ADMIN' ? 'blue' : 'green'}
+                style={{ marginRight: 4, marginBottom: 4 }}
+              >
+                {userRole.role.name}
+              </Tag>
+            ))
+          ) : (
+            <Tag>No Role</Tag>
+          )}
+        </>
       ),
     },
     {
@@ -215,7 +232,7 @@ export default function UsersPage() {
         <UserForm
           initialValues={selectedUser ? {
             ...selectedUser,
-            roleId: selectedUser.roleId || undefined
+            userRoles: selectedUser.userRoles
           } : undefined}
           onSubmit={handleSubmit}
           loading={formLoading}

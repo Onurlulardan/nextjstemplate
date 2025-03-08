@@ -31,7 +31,9 @@ export async function checkPermission(
   if (!session) return false;
 
   // System admin can do anything
-  if (session.user.role === 'ADMIN') return true;
+  // Check if user has ADMIN role
+  const hasAdminRole = session.user.userRoles?.some((ur: { role: { name: string } }) => ur.role.name === 'ADMIN');
+  if (hasAdminRole) return true;
 
   // Check user's direct permissions
   const hasDirectPermission = checkResourcePermission(
@@ -95,7 +97,8 @@ export function usePermission(
   if (!session) return false;
 
   // System admin can do anything
-  if (session.user.role === 'ADMIN') return true;
+  const hasAdminRole = session.user.userRoles?.some((ur: { role: { name: string } }) => ur.role.name === 'ADMIN');
+  if (hasAdminRole) return true;
 
   // Check user's direct permissions
   const hasDirectPermission = checkResourcePermission(

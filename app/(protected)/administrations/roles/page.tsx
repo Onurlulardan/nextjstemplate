@@ -19,7 +19,7 @@ interface RoleWithRelations extends Role {
     slug: string;
   } | null;
   _count?: {
-    users: number;
+    userRoles: number;
   };
 }
 
@@ -151,8 +151,8 @@ export default function RolesPage() {
     },
     {
       title: 'Users',
-      key: 'users',
-      render: (text: string, record: RoleWithRelations) => record._count?.users || 0,
+      key: 'userRoles',
+      render: (text: string, record: RoleWithRelations) => record._count?.userRoles || 0,
     },
   ];
 

@@ -1,16 +1,28 @@
 'use client';
 
-import { Form, Input, Select, Button, Spin } from 'antd';
-import { User, UserRole, UserStatus } from '@prisma/client';
+import { Form, Input, Select, Button } from 'antd';
+import { User, UserStatus } from '@prisma/client';
 import { useEffect, useState } from 'react';
 import { getRequest } from '@/lib/apiClient';
 
-type UserFormData = Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'emailVerified' | 'avatar' | 'role'> & {
-  roleId?: string;
+type UserFormData = Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'emailVerified' | 'avatar'> & {
+  roleIds?: string[];
 };
 
+interface UserRole {
+  role: {
+    id: string;
+    name: string;
+    description: string;
+  };
+}
+
+interface UserWithRoles extends Partial<UserFormData> {
+  userRoles?: UserRole[];
+}
+
 interface UserFormProps {
-  initialValues?: Partial<UserFormData>;
+  initialValues?: UserWithRoles;
   onSubmit: (values: UserFormData) => Promise<void>;
   loading: boolean;
 }
@@ -30,7 +42,15 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
   useEffect(() => {
     form.resetFields();
     if (initialValues) {
-      form.setFieldsValue(initialValues);
+      if (initialValues.userRoles) {
+        const roleIds = initialValues.userRoles.map((ur: any) => ur.role.id);
+        form.setFieldsValue({
+          ...initialValues,
+          roleIds,
+        });
+      } else {
+        form.setFieldsValue(initialValues);
+      }
     }
   }, [form, initialValues]);
 
@@ -56,7 +76,7 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
       layout="vertical"
       onFinish={onSubmit}
       initialValues={{
-        roleId: undefined,
+        roleIds: [],
         status: UserStatus.ACTIVE,
         ...initialValues,
       }}
@@ -104,8 +124,13 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
         <Input />
       </Form.Item>
 
-      <Form.Item label="Role" name="roleId">
-        <Select loading={loadingRoles}>
+      <Form.Item label="Roles" name="roleIds">
+        <Select 
+          mode="multiple"
+          placeholder="Select roles"
+          loading={loadingRoles}
+          optionFilterProp="children"
+        >
           {roles.map((role) => (
             <Select.Option key={role.id} value={role.id}>
               {role.name}

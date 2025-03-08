@@ -36,7 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             },
           },
         },
-        members: {
+        userRoles: {
           include: {
             user: {
               select: {
@@ -156,7 +156,7 @@ export async function DELETE(
       include: {
         _count: {
           select: {
-            members: true,
+            userRoles: true,
           },
         },
       },
@@ -166,9 +166,9 @@ export async function DELETE(
       return new NextResponse('Role not found', { status: 404 });
     }
 
-    // Check if role has members
-    if (role._count.members > 0) {
-      return new NextResponse('Cannot delete role with assigned members. Remove members first.', {
+    // Check if role has users
+    if (role._count.userRoles > 0) {
+      return new NextResponse('Cannot delete role with assigned users. Remove users from this role first.', {
         status: 400,
       });
     }
