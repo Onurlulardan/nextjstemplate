@@ -132,13 +132,7 @@ async function createDefaultRoles() {
   return roles;
 }
 
-async function createSuperAdmin(roles: any[]) {
-  // Find the ADMIN role
-  const adminRole = roles.find((r) => r.name === 'ADMIN');
-  if (!adminRole) {
-    throw new Error('ADMIN role not found');
-  }
-
+async function createSuperAdmin() {
   // Create super admin user
   const hashedPassword = await bcrypt.hash(SUPER_ADMIN_PASSWORD, 10);
 
@@ -157,6 +151,56 @@ async function createSuperAdmin(roles: any[]) {
     },
   });
 
+  console.log('✅ Super Admin created');
+  return superAdmin;
+}
+
+async function createOrganizations(superAdmin: any) {
+  // Create main organization
+  const mainOrganization = await prisma.organization.upsert({
+    where: { slug: 'main-organization' },
+    update: {
+      name: 'Main Organization',
+      status: 'ACTIVE',
+      ownerId: superAdmin.id,
+    },
+    create: {
+      name: 'Main Organization',
+      slug: 'main-organization',
+      status: 'ACTIVE',
+      ownerId: superAdmin.id,
+    },
+  });
+
+  // Create child organization
+  const childOrganization = await prisma.organization.upsert({
+    where: { slug: 'child-organization' },
+    update: {
+      name: 'Child Organization',
+      status: 'ACTIVE',
+      parentId: mainOrganization.id,
+      ownerId: superAdmin.id,
+    },
+    create: {
+      name: 'Child Organization',
+      slug: 'child-organization',
+      status: 'ACTIVE',
+      parentId: mainOrganization.id,
+      ownerId: superAdmin.id,
+    },
+  });
+
+  console.log('✅ Organizations created');
+  return { mainOrganization, childOrganization };
+}
+
+async function assignSuperAdminToOrganization(superAdmin: any, roles: any[], mainOrganization: any) {
+  // Find the ADMIN role
+  const adminRole = roles.find((r) => r.name === 'ADMIN');
+  if (!adminRole) {
+    throw new Error('ADMIN role not found');
+  }
+
   await prisma.userRole.deleteMany({
     where: { userId: superAdmin.id },
   });
@@ -168,7 +212,28 @@ async function createSuperAdmin(roles: any[]) {
     },
   });
 
-  console.log('✅ Super Admin created');
+  // Create organization membership for super admin
+  const orgAdminRole = roles.find((r) => r.name === 'ORGANIZATION ADMIN');
+  if (orgAdminRole) {
+    // Delete any existing memberships first
+    await prisma.organizationMember.deleteMany({
+      where: {
+        userId: superAdmin.id,
+        organizationId: mainOrganization.id,
+      },
+    });
+
+    // Create new membership
+    await prisma.organizationMember.create({
+      data: {
+        userId: superAdmin.id,
+        organizationId: mainOrganization.id,
+        roleId: orgAdminRole.id,
+      },
+    });
+  }
+
+  console.log('✅ Super Admin assigned to organization');
   return superAdmin;
 }
 
@@ -267,8 +332,14 @@ async function main() {
     // Create default roles
     const roles = await createDefaultRoles();
 
-    // Create super admin user with ADMIN role
-    const superAdmin = await createSuperAdmin(roles);
+    // Create super admin user first
+    const superAdmin = await createSuperAdmin();
+
+    // Create organizations with super admin as owner
+    const { mainOrganization, childOrganization } = await createOrganizations(superAdmin);
+
+    // Assign super admin to organization with roles
+    await assignSuperAdminToOrganization(superAdmin, roles, mainOrganization);
 
     // Create permissions for super admin
     await createSuperAdminPermissions(superAdmin, resources, actions);

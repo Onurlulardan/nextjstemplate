@@ -60,6 +60,15 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
       try {
         const data = await getRequest<Role[]>('/administrations/roles');
         setRoles(data);
+        
+        if (!initialValues) {
+          const defaultRole = data.find(role => role.isDefault);
+          if (defaultRole) {
+            form.setFieldsValue({
+              roleIds: [defaultRole.id]
+            });
+          }
+        }
       } catch (error) {
         console.error('Error fetching roles:', error);
       } finally {
@@ -68,7 +77,7 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
     };
 
     fetchRoles();
-  }, []);
+  }, [form, initialValues]);
 
   return (
     <Form
