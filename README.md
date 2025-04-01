@@ -850,3 +850,13 @@ The `prisma/seed.ts` file creates initial data:
 ![Image 4](/public/readme-img/4.png)
 
 ![Image 5](/public/readme-img/5.png)
+
+![Image 6](/public/readme-img/6.png)
+
+![Image 7](/public/readme-img/7.png)
+
+![Image 8](/public/readme-img/8.png)
+
+![Image 9](/public/readme-img/9.png)
+
+![Image 10](/public/readme-img/10.png)
