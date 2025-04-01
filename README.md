@@ -1,6 +1,6 @@
-![NextJS Starter Template](/public/readme-img/2.png)
-
 # NextJS Starter
+
+![NextJS Starter Template](/public/readme-img/2.png)
 
 [All Images](#all-images)
 
