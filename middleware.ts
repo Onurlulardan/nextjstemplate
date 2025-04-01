@@ -48,6 +48,7 @@ export default withAuth(
 export const config = {
   matcher: [
     '/dashboard/:path*',
+    '/administrations/:path*',
     '/settings/:path*',
     '/admin/:path*',
     '/api/auth/callback/credentials',
