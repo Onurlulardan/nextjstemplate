@@ -42,11 +42,15 @@ export default withAuth(
     pages: {
       signIn: '/auth/login',
     },
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
   }
 );
 
 export const config = {
   matcher: [
+    '/',
     '/dashboard/:path*',
     '/administrations/:path*',
     '/settings/:path*',
