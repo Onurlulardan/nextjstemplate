@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, SessionProvider } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { Layout, theme } from 'antd';
 import Navbar from '@/core/layout/components/Navbar';
 import Sidebar from '@/core/layout/components/Sidebar';
@@ -47,8 +47,6 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
-      <ProtectedContent>{children}</ProtectedContent>
-    </SessionProvider>
+    <ProtectedContent>{children}</ProtectedContent>
   );
 }

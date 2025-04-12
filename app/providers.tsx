@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import baseTheme from '@/config/theme.json';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { useNotificationSetup } from '@/hooks/useNotificationSetup';
+import { SessionProvider } from 'next-auth/react';
 
 interface ThemeContextType {
   isDark: boolean;
@@ -50,14 +51,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
-      <ConfigProvider theme={themeConfig}>
-        <App>
-          <NotificationProvider>
-            <NotificationSetup>{children}</NotificationSetup>
-          </NotificationProvider>
-        </App>
-      </ConfigProvider>
-    </ThemeContext.Provider>
+    <SessionProvider>
+      <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+        <ConfigProvider theme={themeConfig}>
+          <App>
+            <NotificationProvider>
+              <NotificationSetup>{children}</NotificationSetup>
+            </NotificationProvider>
+          </App>
+        </ConfigProvider>
+      </ThemeContext.Provider>
+    </SessionProvider>
   );
 }
