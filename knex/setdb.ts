@@ -37,6 +37,41 @@ async function main() {
     table.timestamp('updatedAt').notNullable().defaultTo(knex.fn.now());
   });
 
+  // Account Table (NextAuth)
+  await knex.schema.createTable('Account', (table) => {
+    table.string('userId').notNullable().references('User.id').onDelete('CASCADE');
+    table.string('type').notNullable();
+    table.string('provider').notNullable();
+    table.string('providerAccountId').notNullable();
+    table.string('refresh_token');
+    table.string('access_token');
+    table.bigInteger('expires_at');
+    table.string('token_type');
+    table.string('scope');
+    table.string('id_token');
+    table.string('session_state');
+    table.string('oauth_token_secret');
+    table.string('oauth_token');
+    table.primary(['provider', 'providerAccountId']);
+    table.index(['userId']);
+  });
+
+  // Session Table (NextAuth)
+  await knex.schema.createTable('Session', (table) => {
+    table.string('sessionToken').primary();
+    table.string('userId').notNullable().references('User.id').onDelete('CASCADE');
+    table.timestamp('expires').notNullable();
+    table.index(['userId']);
+  });
+
+  // VerificationToken Table (NextAuth)
+  await knex.schema.createTable('VerificationToken', (table) => {
+    table.string('identifier').notNullable();
+    table.string('token').notNullable();
+    table.timestamp('expires').notNullable();
+    table.primary(['identifier', 'token']);
+  });
+
   // Organization Table
   await knex.schema.createTable('Organization', (table) => {
     table.string('id').primary();

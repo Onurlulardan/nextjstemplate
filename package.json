@@ -12,10 +12,10 @@
     "format": "prettier --write .",
     "migrate": "prisma migrate dev && npm run format",
     "reset-db": "npx prisma migrate reset",
-    "seed": "node --loader ts-node/esm prisma/seed.ts"
+    "seed": "node --loader ts-node/esm knex/seed.ts"
   },
-  "prisma": {
-    "seed": "node --loader ts-node/esm prisma/seed.ts"
+  "knex": {
+    "seed": "node --loader ts-node/esm knex/seed.ts"
   },
   "ts-node": {
     "esm": true,
