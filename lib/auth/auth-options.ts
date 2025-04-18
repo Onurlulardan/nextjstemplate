@@ -34,6 +34,7 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           await knex('SecurityLog')
             .insert({
+              id: knex.raw('uuid_generate_v4()'),
               email: credentials?.email || '',
               ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
               userAgent,
@@ -53,6 +54,7 @@ export const authOptions: NextAuthOptions = {
         if (!user) {
           await knex('SecurityLog')
             .insert({
+              id: knex.raw('uuid_generate_v4()'),
               email: credentials.email.toLowerCase(),
               ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
               userAgent,
@@ -70,6 +72,7 @@ export const authOptions: NextAuthOptions = {
         if (!valid) {
           await knex('SecurityLog')
             .insert({
+              id: knex.raw('uuid_generate_v4()'),
               email: credentials.email.toLowerCase(),
               ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
               userAgent,
@@ -86,6 +89,7 @@ export const authOptions: NextAuthOptions = {
         if (user.status !== UserStatus.ACTIVE) {
           await knex('SecurityLog')
             .insert({
+              id: knex.raw('uuid_generate_v4()'),
               userId: user.id,
               email: user.email,
               ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
@@ -225,6 +229,7 @@ export const authOptions: NextAuthOptions = {
         // success log
         await knex('SecurityLog')
           .insert({
+            id: knex.raw('uuid_generate_v4()'),
             userId: user.id,
             email: user.email,
             ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
