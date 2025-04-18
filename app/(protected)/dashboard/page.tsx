@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Typography, Button } from 'antd';
 import { useSession } from 'next-auth/react';
-import { usePermission } from '@/lib/auth/permissions';
+import { usePermission } from '@/lib/auth/client-permissions';
 import Link from 'next/link';
 import { ArrowRightOutlined } from '@ant-design/icons';
 import { getRequest } from '@/lib/apiClient';
