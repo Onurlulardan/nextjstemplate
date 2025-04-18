@@ -12,7 +12,11 @@ export const authOptions: NextAuthOptions = {
     maxAge: Number(process.env.NEXTAUTH_SESSION_MAX_AGE) || 7 * 24 * 60 * 60, // 7 days
     updateAge: Number(process.env.NEXTAUTH_SESSION_UPDATE_AGE) || 60 * 60, // 1 hour
   },
-  pages: { signIn: '/auth/login', newUser: '/auth/register', error: '/auth/error' },
+  pages: {
+    signIn: '/auth/login',
+    newUser: '/auth/register',
+    error: '/auth/error',
+  },
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -20,12 +24,13 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials, request) {
-        // IP and User-Agent
-        const ipAddress = request?.headers['x-forwarded-for']?.split(',')[0] || '0.0.0.0';
-        const userAgent = request?.headers['user-agent'] || 'Unknown';
+      // cast request to any to avoid undefined-header errors
+      async authorize(credentials, request: any) {
+        const headers = request.headers || {};
+        const ipAddress = (headers['x-forwarded-for'] as string)?.split(',')[0] || '0.0.0.0';
+        const userAgent = (headers['user-agent'] as string) || 'Unknown';
 
-        // Validate input
+        // missing credentials
         if (!credentials?.email || !credentials?.password) {
           await knex('SecurityLog')
             .insert({
@@ -41,7 +46,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Please provide both email and password');
         }
 
-        // Fetch user
+        // fetch user
         const user = await knex('User')
           .whereRaw('LOWER(email) = ?', [credentials.email.toLowerCase()])
           .first();
@@ -60,9 +65,9 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid email or password');
         }
 
-        // Verify password
-        const validPassword = await bcrypt.compare(credentials.password, user.password);
-        if (!validPassword) {
+        // check password
+        const valid = await bcrypt.compare(credentials.password, user.password);
+        if (!valid) {
           await knex('SecurityLog')
             .insert({
               email: credentials.email.toLowerCase(),
@@ -77,7 +82,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid email or password');
         }
 
-        // Check user status
+        // inactive account
         if (user.status !== UserStatus.ACTIVE) {
           await knex('SecurityLog')
             .insert({
@@ -94,29 +99,29 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Your account is not active. Please contact support.');
         }
 
-        // Direct permissions
-        const permissionsRaw = await knex('Permission')
+        // direct permissions
+        const perms = await knex('Permission')
           .where({ userId: user.id, target: PermissionTarget.USER })
           .leftJoin('Resource', 'Permission.resourceId', 'Resource.id')
           .select('Permission.id as permissionId', 'Resource.slug as resourceSlug');
-        const permissionIds = permissionsRaw.map((p) => p.permissionId);
-        let actionsRaw: { permissionId: string; slug: string }[] = [];
-        if (permissionIds.length) {
-          actionsRaw = await knex('PermissionAction')
-            .whereIn('permissionId', permissionIds)
+        const permIds = perms.map((p) => p.permissionId);
+        let actRows: { permissionId: string; slug: string }[] = [];
+        if (permIds.length) {
+          actRows = await knex('PermissionAction')
+            .whereIn('permissionId', permIds)
             .leftJoin('Action', 'PermissionAction.actionId', 'Action.id')
             .select('PermissionAction.permissionId', 'Action.slug');
         }
-        const directPermissions: Permission[] = permissionsRaw.map((p) => ({
+        const directPermissions: Permission[] = perms.map((p) => ({
           target: PermissionTarget.USER,
           resource: { slug: p.resourceSlug },
-          actions: actionsRaw
+          actions: actRows
             .filter((a) => a.permissionId === p.permissionId)
             .map((a) => ({ slug: a.slug })),
         }));
 
-        // Memberships & organization/role permissions
-        const membershipsRaw = await knex('OrganizationMember')
+        // memberships
+        const mems = await knex('OrganizationMember')
           .where({ userId: user.id })
           .leftJoin('Organization', 'OrganizationMember.organizationId', 'Organization.id')
           .leftJoin('Role', 'OrganizationMember.roleId', 'Role.id')
@@ -129,11 +134,11 @@ export const authOptions: NextAuthOptions = {
             'Role.name as roleName',
             'Role.description as roleDescription'
           );
+        const orgIds = mems.map((m) => m.orgId).filter(Boolean);
 
-        const orgIds = membershipsRaw.map((m) => m.orgId).filter(Boolean);
-        let orgPermissionsRaw: any[] = [];
+        let orgPerms: any[] = [];
         if (orgIds.length) {
-          orgPermissionsRaw = await knex('Permission')
+          orgPerms = await knex('Permission')
             .whereIn('organizationId', orgIds)
             .andWhere('target', PermissionTarget.ORGANIZATION)
             .leftJoin('Resource', 'Permission.resourceId', 'Resource.id')
@@ -143,19 +148,19 @@ export const authOptions: NextAuthOptions = {
               'Resource.slug as resourceSlug'
             );
         }
-        const orgPermissionIds = orgPermissionsRaw.map((p) => p.permissionId);
-        let orgActionsRaw: { permissionId: string; slug: string }[] = [];
-        if (orgPermissionIds.length) {
-          orgActionsRaw = await knex('PermissionAction')
-            .whereIn('permissionId', orgPermissionIds)
+        const orgPermIds = orgPerms.map((p) => p.permissionId);
+        let orgActs: { permissionId: string; slug: string }[] = [];
+        if (orgPermIds.length) {
+          orgActs = await knex('PermissionAction')
+            .whereIn('permissionId', orgPermIds)
             .leftJoin('Action', 'PermissionAction.actionId', 'Action.id')
             .select('PermissionAction.permissionId', 'Action.slug');
         }
 
-        const roleIds = membershipsRaw.map((m) => m.roleId).filter(Boolean);
-        let rolePermissionsRaw: any[] = [];
+        const roleIds = mems.map((m) => m.roleId).filter(Boolean);
+        let rolePerms: any[] = [];
         if (roleIds.length) {
-          rolePermissionsRaw = await knex('Permission')
+          rolePerms = await knex('Permission')
             .whereIn('roleId', roleIds)
             .andWhere('target', PermissionTarget.ROLE)
             .leftJoin('Resource', 'Permission.resourceId', 'Resource.id')
@@ -165,30 +170,30 @@ export const authOptions: NextAuthOptions = {
               'Resource.slug as resourceSlug'
             );
         }
-        const rolePermissionIds = rolePermissionsRaw.map((p) => p.permissionId);
-        let roleActionsRaw: { permissionId: string; slug: string }[] = [];
-        if (rolePermissionIds.length) {
-          roleActionsRaw = await knex('PermissionAction')
-            .whereIn('permissionId', rolePermissionIds)
+        const rolePermIds = rolePerms.map((p) => p.permissionId);
+        let roleActs: { permissionId: string; slug: string }[] = [];
+        if (rolePermIds.length) {
+          roleActs = await knex('PermissionAction')
+            .whereIn('permissionId', rolePermIds)
             .leftJoin('Action', 'PermissionAction.actionId', 'Action.id')
             .select('PermissionAction.permissionId', 'Action.slug');
         }
 
-        const memberships = membershipsRaw.map((m) => ({
+        const memberships = mems.map((m) => ({
           id: m.membershipId,
           role: m.roleId
             ? {
                 id: m.roleId,
                 name: m.roleName,
                 description: m.roleDescription || '',
-                permissions: rolePermissionsRaw
-                  .filter((p) => p.roleId === m.roleId)
-                  .map((p) => ({
+                permissions: rolePerms
+                  .filter((rp) => rp.roleId === m.roleId)
+                  .map((rp) => ({
                     target: PermissionTarget.ROLE,
-                    resource: { slug: p.resourceSlug },
-                    actions: roleActionsRaw
-                      .filter((a) => a.permissionId === p.permissionId)
-                      .map((a) => ({ slug: a.slug })),
+                    resource: { slug: rp.resourceSlug },
+                    actions: roleActs
+                      .filter((ra) => ra.permissionId === rp.permissionId)
+                      .map((ra) => ({ slug: ra.slug })),
                   })),
               }
             : null,
@@ -196,28 +201,28 @@ export const authOptions: NextAuthOptions = {
             id: m.orgId,
             name: m.orgName,
             slug: m.orgSlug,
-            permissions: orgPermissionsRaw
-              .filter((p) => p.organizationId === m.orgId)
-              .map((p) => ({
+            permissions: orgPerms
+              .filter((op) => op.organizationId === m.orgId)
+              .map((op) => ({
                 target: PermissionTarget.ORGANIZATION,
-                resource: { slug: p.resourceSlug },
-                actions: orgActionsRaw
-                  .filter((a) => a.permissionId === p.permissionId)
-                  .map((a) => ({ slug: a.slug })),
+                resource: { slug: op.resourceSlug },
+                actions: orgActs
+                  .filter((oa) => oa.permissionId === op.permissionId)
+                  .map((oa) => ({ slug: oa.slug })),
               })),
           },
         }));
 
-        // User roles
-        const userRolesRaw = await knex('UserRole')
+        // user roles
+        const ur = await knex('UserRole')
           .where({ userId: user.id })
           .leftJoin('Role', 'UserRole.roleId', 'Role.id')
           .select('Role.id', 'Role.name', 'Role.description');
-        const userRoles = userRolesRaw.map((ur) => ({
-          role: { id: ur.id, name: ur.name, description: ur.description || '' },
+        const userRoles = ur.map((r) => ({
+          role: { id: r.id, name: r.name, description: r.description || '' },
         }));
 
-        // Log successful login
+        // success log
         await knex('SecurityLog')
           .insert({
             userId: user.id,
@@ -238,32 +243,12 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, trigger }) {
       if (trigger === 'signIn' && user) {
-        Object.assign(token, {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          phone: user.phone,
-          avatar: user.avatar,
-          status: user.status,
-          permissions: user.permissions,
-          memberships: user.memberships,
-          userRoles: user.userRoles,
-        });
+        Object.assign(token, user);
       }
       return token;
     },
     async session({ session, token }) {
-      Object.assign(session.user, {
-        id: token.id,
-        firstName: token.firstName,
-        lastName: token.lastName,
-        phone: token.phone,
-        avatar: token.avatar,
-        status: token.status,
-        permissions: token.permissions,
-        memberships: token.memberships,
-        userRoles: token.userRoles,
-      });
+      session.user = { ...session.user, ...token };
       return session;
     },
   },
