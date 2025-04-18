@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, Typography, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { getRequest } from '@/lib/apiClient';
-import { usePermission } from '@/lib/auth/permissions';
+import { usePermission } from '@/lib/auth/client-permissions';
 
 const { Title } = Typography;
 

@@ -21,7 +21,7 @@ import {
   DeleteOutlined,
   MoreOutlined,
 } from '@ant-design/icons';
-import { usePermission } from '@/lib/auth/permissions';
+import { usePermission } from '@/lib/auth/client-permissions';
 import { DataGrid } from '@/core/components/datagrid';
 import { Permission, Resource, Action } from '@prisma/client';
 import { PermissionForm } from './components/permission-form';

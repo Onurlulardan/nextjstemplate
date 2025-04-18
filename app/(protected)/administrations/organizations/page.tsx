@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, Button, Tag, Typography, Dropdown, MenuProps, Drawer, Modal } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
-import { usePermission } from '@/lib/auth/permissions';
+import { usePermission } from '@/lib/auth/client-permissions';
 import { DataGrid } from '@/core/components/datagrid';
 import { Organization, OrgStatus } from '@prisma/client';
 import { OrganizationForm } from './components/organization-form';
