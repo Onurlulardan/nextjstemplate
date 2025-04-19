@@ -27,10 +27,10 @@ export function NextAuthKnexAdapter(knex: Knex): Adapter {
       const [acc] = await knex('Account').insert(account).returning('*');
       return acc;
     },
-    async unlinkAccount({ provider, providerAccountId }) {
+    async unlinkAccount({ provider, providerAccountId }: { provider: string; providerAccountId: string }) {
       await knex('Account').where({ provider, providerAccountId }).del();
     },
-    async getUserByAccount({ provider, providerAccountId }) {
+    async getUserByAccount({ provider, providerAccountId }: { provider: string; providerAccountId: string }) {
       return knex('Account')
         .where({ provider, providerAccountId })
         .join('User', 'Account.userId', 'User.id')
