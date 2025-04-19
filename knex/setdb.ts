@@ -2,6 +2,39 @@ import 'dotenv/config';
 import knex from './index.js';
 
 async function main() {
+  // Mevcut tabloları silme
+  console.log('Mevcut tabloları silme işlemi başlatılıyor...');
+  try {
+    await knex.schema.dropTableIfExists('SecurityLog');
+    await knex.schema.dropTableIfExists('OrganizationMember');
+    await knex.schema.dropTableIfExists('UserRole');
+    await knex.schema.dropTableIfExists('PermissionAction');
+    await knex.schema.dropTableIfExists('Permission');
+    await knex.schema.dropTableIfExists('Role');
+    await knex.schema.dropTableIfExists('Organization');
+    await knex.schema.dropTableIfExists('VerificationToken');
+    await knex.schema.dropTableIfExists('Session');
+    await knex.schema.dropTableIfExists('Account');
+    await knex.schema.dropTableIfExists('User');
+    await knex.schema.dropTableIfExists('Action');
+    await knex.schema.dropTableIfExists('Resource');
+    console.log('Mevcut tablolar başarıyla silindi.');
+    
+    // Enum tiplerini silme
+    console.log('Enum tiplerini silme işlemi başlatılıyor...');
+    await knex.raw('DROP TYPE IF EXISTS "PermissionTarget"');
+    console.log('Enum tipleri başarıyla silindi.');
+    
+    // UUID eklentisini yükleme
+    console.log('UUID eklentisi yükleniyor...');
+    await knex.raw('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+    await knex.raw('CREATE EXTENSION IF NOT EXISTS "pgcrypto"');
+    console.log('UUID eklentileri başarıyla yüklendi.');
+  } catch (err) {
+    console.error('Tabloları, enum tiplerini veya eklentileri yüklerken hata oluştu:', err);
+  }
+
+  // Yeni tabloları oluşturma
   // Resource Table
   await knex.schema.createTable('Resource', (table) => {
     table.string('id').primary();
