@@ -1,9 +1,9 @@
 import Knex from 'knex';
 
-const connectionString = process.env.TEST_DATABASE_URL;
+const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  throw new Error('TEST_DATABASE_URL environment variable is not set');
+  throw new Error('DATABASE_URL environment variable is not set');
 }
 
 const knex = Knex({
