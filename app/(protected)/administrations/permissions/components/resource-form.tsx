@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { Form, Input, Button, Space } from 'antd';
-import { Resource } from '@prisma/client';
+import { Resource } from '@/knex/types';
 
 interface ResourceFormProps {
   initialValues?: Resource | null;

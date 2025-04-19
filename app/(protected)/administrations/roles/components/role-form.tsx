@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Form, Input, Button, Select, Switch, Divider, Space } from 'antd';
-import { Role, Organization } from '@prisma/client';
+import { Role, Organization } from '@/knex/types';
 import { useSession } from 'next-auth/react';
 import { getRequest } from '@/lib/apiClient';
 

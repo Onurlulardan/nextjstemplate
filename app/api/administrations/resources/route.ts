@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import knex from '@/knex';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
-import { requirePermission } from '@/lib/auth/permissions';
+import { requirePermission } from '@/lib/auth/server-permissions';
 
 // GET /api/resources
 export async function GET(request: NextRequest) {
@@ -14,15 +14,26 @@ export async function GET(request: NextRequest) {
 
     await requirePermission('resource', 'view');
 
-    const resources = await prisma.resource.findMany({
-      include: {
-        _count: {
-          select: {
-            permissions: true,
-          },
-        },
-      },
-    });
+    // Get all resources
+    const resources = await knex('Resource').select(
+      'id',
+      'name',
+      'description',
+      'createdAt',
+      'updatedAt'
+    );
+
+    // For each resource, count related permissions
+    for (const resource of resources) {
+      const permissionCount = await knex('Permission')
+        .where({ resourceId: resource.id })
+        .count('id as count')
+        .first();
+      
+      resource._count = {
+        permissions: parseInt(permissionCount?.count?.toString() || '0', 10)
+      };
+    }
 
     return NextResponse.json(resources);
   } catch (error) {
@@ -42,28 +53,22 @@ export async function POST(request: NextRequest) {
     await requirePermission('resource', 'create');
 
     const body = await request.json();
-    const { name, slug, description } = body;
+    const { name, description } = body;
 
-    if (!name || !slug) {
-      return new NextResponse('Missing required fields', { status: 400 });
+    if (!name) {
+      return new NextResponse('Name is required', { status: 400 });
     }
 
-    // Check if resource with same slug already exists
-    const existingResource = await prisma.resource.findUnique({
-      where: { slug },
-    });
-
-    if (existingResource) {
-      return new NextResponse('Resource with this slug already exists', { status: 400 });
-    }
-
-    const resource = await prisma.resource.create({
-      data: {
+    // Create resource
+    const [resource] = await knex('Resource')
+      .insert({
+        id: knex.raw('uuid_generate_v4()'),
         name,
-        slug,
         description,
-      },
-    });
+        createdAt: knex.fn.now(),
+        updatedAt: knex.fn.now()
+      })
+      .returning(['id', 'name', 'description', 'createdAt', 'updatedAt']);
 
     return NextResponse.json(resource, { status: 201 });
   } catch (error) {

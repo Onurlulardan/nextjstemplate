@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
-import { prisma } from '@/lib/prisma';
+import knex from '@/knex';
 
 export async function GET() {
   try {
@@ -12,15 +12,17 @@ export async function GET() {
     }
 
     // Get total organizations count
-    const totalOrganizations = await prisma.organization.count();
+    const [orgCount] = await knex('Organization').count('* as count');
+    const totalOrganizations = parseInt(orgCount.count as string, 10);
 
     // Get users statistics
-    const totalUsers = await prisma.user.count();
-    const activeUsers = await prisma.user.count({
-      where: {
-        status: 'ACTIVE',
-      },
-    });
+    const [userCount] = await knex('User').count('* as count');
+    const totalUsers = parseInt(userCount.count as string, 10);
+    
+    const [activeUserCount] = await knex('User')
+      .where({ status: 'ACTIVE' })
+      .count('* as count');
+    const activeUsers = parseInt(activeUserCount.count as string, 10);
 
     return NextResponse.json({
       totalOrganizations,

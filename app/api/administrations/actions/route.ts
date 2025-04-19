@@ -1,15 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import knex from '@/knex';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
-import { requirePermission } from '@/lib/auth/permissions';
-
-// Schema for creating/updating an action
-const actionSchema = {
-  name: 'string',
-  slug: 'string',
-  description: 'string',
-};
+import { requirePermission } from '@/lib/auth/server-permissions';
 
 // GET /api/actions
 export async function GET(request: NextRequest) {
@@ -21,15 +14,26 @@ export async function GET(request: NextRequest) {
 
     await requirePermission('action', 'view');
 
-    const actions = await prisma.action.findMany({
-      include: {
-        _count: {
-          select: {
-            permissions: true,
-          },
-        },
-      },
-    });
+    // Get all actions
+    const actions = await knex('Action').select(
+      'id',
+      'name',
+      'description',
+      'createdAt',
+      'updatedAt'
+    );
+
+    // For each action, count related permission actions
+    for (const action of actions) {
+      const permissionCount = await knex('PermissionAction')
+        .where({ actionId: action.id })
+        .count('id as count')
+        .first();
+
+      action._count = {
+        permissions: parseInt(permissionCount?.count?.toString() || '0', 10),
+      };
+    }
 
     return NextResponse.json(actions);
   } catch (error) {
@@ -55,22 +59,23 @@ export async function POST(request: NextRequest) {
       return new NextResponse('Missing required fields', { status: 400 });
     }
 
-    // Check if action with same slug already exists
-    const existingAction = await prisma.action.findUnique({
-      where: { slug },
-    });
+    // Check if action with same name already exists
+    const existingAction = await knex('Action').where({ name }).first();
 
     if (existingAction) {
-      return new NextResponse('Action with this slug already exists', { status: 400 });
+      return new NextResponse('Action with this name already exists', { status: 400 });
     }
 
-    const action = await prisma.action.create({
-      data: {
+    // Create action
+    const [action] = await knex('Action')
+      .insert({
+        id: knex.raw('uuid_generate_v4()'),
         name,
-        slug,
         description,
-      },
-    });
+        createdAt: knex.fn.now(),
+        updatedAt: knex.fn.now(),
+      })
+      .returning(['id', 'name', 'description', 'createdAt', 'updatedAt']);
 
     return NextResponse.json(action, { status: 201 });
   } catch (error) {
@@ -91,40 +96,37 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const { id } = await params;
     const body = await request.json();
-    const { name, slug, description } = body;
+    const { name, description } = body;
 
-    if (!name || !slug) {
-      return new NextResponse('Missing required fields', { status: 400 });
+    if (!name) {
+      return new NextResponse('Name is required', { status: 400 });
     }
 
     // Check if action exists
-    const existingAction = await prisma.action.findUnique({
-      where: { id },
-    });
+    const existingAction = await knex('Action').where({ id }).first();
 
     if (!existingAction) {
       return new NextResponse('Action not found', { status: 404 });
     }
 
-    // Check if slug is being changed and if new slug is already taken
-    if (slug !== existingAction.slug) {
-      const slugExists = await prisma.action.findUnique({
-        where: { slug },
-      });
+    // Check if name is being changed and if new name is already taken
+    if (name !== existingAction.name) {
+      const nameExists = await knex('Action').where({ name }).whereNot({ id }).first();
 
-      if (slugExists) {
-        return new NextResponse('Action with this slug already exists', { status: 400 });
+      if (nameExists) {
+        return new NextResponse('Action with this name already exists', { status: 400 });
       }
     }
 
-    const action = await prisma.action.update({
-      where: { id },
-      data: {
+    // Update action
+    const [action] = await knex('Action')
+      .where({ id })
+      .update({
         name,
-        slug,
         description,
-      },
-    });
+        updatedAt: knex.fn.now(),
+      })
+      .returning(['id', 'name', 'description', 'createdAt', 'updatedAt']);
 
     return NextResponse.json(action);
   } catch (error) {
@@ -148,31 +150,29 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Check if action exists and has no associated permissions
-    const existingAction = await prisma.action.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            permissions: true,
-          },
-        },
-      },
-    });
+    // Check if action exists
+    const existingAction = await knex('Action').where({ id }).first();
 
     if (!existingAction) {
       return new NextResponse('Action not found', { status: 404 });
     }
 
-    if (existingAction._count.permissions > 0) {
+    // Check if action has associated permission actions
+    const permissionCount = await knex('PermissionAction')
+      .where({ actionId: id })
+      .count('id as count')
+      .first();
+
+    const permissionsCount = parseInt(permissionCount?.count?.toString() || '0', 10);
+
+    if (permissionsCount > 0) {
       return new NextResponse('Cannot delete action that has associated permissions', {
         status: 400,
       });
     }
 
-    await prisma.action.delete({
-      where: { id },
-    });
+    // Delete action
+    await knex('Action').where({ id }).delete();
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

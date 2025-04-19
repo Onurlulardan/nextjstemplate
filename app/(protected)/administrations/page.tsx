@@ -11,7 +11,7 @@ import {
 } from '@ant-design/icons';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { usePermission } from '@/lib/auth/permissions';
+import { usePermission } from '@/lib/auth/client-permissions';
 
 const { Title, Text } = Typography;
 

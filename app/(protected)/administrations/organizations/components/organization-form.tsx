@@ -1,7 +1,7 @@
 'use client';
 
 import { Form, Input, Select, Button } from 'antd';
-import { Organization, OrgStatus } from '@prisma/client';
+import { Organization, OrgStatus } from '@/knex/types';
 import { useEffect, useState } from 'react';
 import { getRequest } from '@/lib/apiClient';
 

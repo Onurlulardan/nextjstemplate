@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import knex from '@/knex';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
-import { requirePermission } from '@/lib/auth/permissions';
+import { requirePermission } from '@/lib/auth/server-permissions';
 
 // GET /api/resources/[id]
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -16,16 +16,28 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const { id } = await params;
 
-    const resource = await prisma.resource.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            permissions: true,
-          },
-        },
-      },
-    });
+    // Get resource by id
+    const resource = await knex('Resource')
+      .where({ id })
+      .first(
+        'id',
+        'name',
+        'description',
+        'createdAt',
+        'updatedAt'
+      );
+
+    if (resource) {
+      // Count related permissions
+      const permissionCount = await knex('Permission')
+        .where({ resourceId: id })
+        .count('id as count')
+        .first();
+
+      resource._count = {
+        permissions: parseInt(permissionCount?.count?.toString() || '0', 10)
+      };
+    }
 
     if (!resource) {
       return new NextResponse('Resource not found', { status: 404 });
@@ -50,40 +62,30 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const { id } = await params;
     const body = await request.json();
-    const { name, slug, description } = body;
+    const { name, description } = body;
 
-    if (!name || !slug) {
-      return new NextResponse('Missing required fields', { status: 400 });
+    if (!name) {
+      return new NextResponse('Name is required', { status: 400 });
     }
 
     // Check if resource exists
-    const existingResource = await prisma.resource.findUnique({
-      where: { id },
-    });
+    const existingResource = await knex('Resource')
+      .where({ id })
+      .first();
 
     if (!existingResource) {
       return new NextResponse('Resource not found', { status: 404 });
     }
 
-    // If slug is being changed, check if new slug is already in use
-    if (slug !== existingResource.slug) {
-      const slugExists = await prisma.resource.findUnique({
-        where: { slug },
-      });
-
-      if (slugExists) {
-        return new NextResponse('Resource with this slug already exists', { status: 400 });
-      }
-    }
-
-    const resource = await prisma.resource.update({
-      where: { id },
-      data: {
+    // Update resource
+    const [resource] = await knex('Resource')
+      .where({ id })
+      .update({
         name,
-        slug,
         description,
-      },
-    });
+        updatedAt: knex.fn.now()
+      })
+      .returning(['id', 'name', 'description', 'createdAt', 'updatedAt']);
 
     return NextResponse.json(resource);
   } catch (error) {
@@ -108,30 +110,32 @@ export async function DELETE(
     const { id } = await params;
 
     // Check if resource exists and has no associated permissions
-    const existingResource = await prisma.resource.findUnique({
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            permissions: true,
-          },
-        },
-      },
-    });
+    const existingResource = await knex('Resource')
+      .where({ id })
+      .first();
 
     if (!existingResource) {
       return new NextResponse('Resource not found', { status: 404 });
     }
 
-    if (existingResource._count.permissions > 0) {
+    // Count related permissions
+    const permissionCount = await knex('Permission')
+      .where({ resourceId: id })
+      .count('id as count')
+      .first();
+
+    const permissionsCount = parseInt(permissionCount?.count?.toString() || '0', 10);
+
+    if (permissionsCount > 0) {
       return new NextResponse('Cannot delete resource that has associated permissions', {
         status: 400,
       });
     }
 
-    await prisma.resource.delete({
-      where: { id },
-    });
+    // Delete resource
+    await knex('Resource')
+      .where({ id })
+      .delete();
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

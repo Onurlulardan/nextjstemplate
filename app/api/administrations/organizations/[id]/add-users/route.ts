@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import knex from '@/knex';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
-import { requirePermission } from '@/lib/auth/permissions';
+import { requirePermission } from '@/lib/auth/server-permissions';
 
 // POST /api/organizations/[id]/add-users
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -24,28 +24,34 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Get existing members
-    const existingMembers = await prisma.organizationMember.findMany({
-      where: {
-        organizationId,
-        userId: {
-          in: userIds,
-        },
-      },
-    });
+    const existingMembers = await knex('OrganizationMember')
+      .where({ organizationId })
+      .whereIn('userId', userIds);
 
     const existingUserIds = existingMembers.map((member) => member.userId);
     const newUserIds = userIds.filter((id) => !existingUserIds.includes(id));
 
     // Add new members
-    const newMembers = await prisma.organizationMember.createMany({
-      data: newUserIds.map((userId) => ({
-        organizationId,
-        userId,
-      })),
-    });
+    let addedCount = 0;
+    if (newUserIds.length > 0) {
+      // Use transaction to ensure all inserts succeed or fail together
+      await knex.transaction(async (trx) => {
+        // Insert each new member
+        for (const userId of newUserIds) {
+          await trx('OrganizationMember').insert({
+            id: trx.raw('uuid_generate_v4()'),
+            organizationId,
+            userId,
+            createdAt: trx.fn.now(),
+            updatedAt: trx.fn.now()
+          });
+          addedCount++;
+        }
+      });
+    }
 
     return NextResponse.json({
-      added: newMembers.count,
+      added: addedCount,
       skipped: existingUserIds.length,
     });
   } catch (error) {

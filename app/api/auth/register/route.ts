@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { prisma } from '@/lib/prisma';
+import knex from '@/knex';
 
 export async function POST(req: Request) {
   try {
     const { email, password, firstName, lastName, phone } = await req.json();
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await knex('User')
+      .where({ email })
+      .first();
 
     if (existingUser) {
       return new NextResponse('Email already exists', { status: 400 });
@@ -18,43 +18,47 @@ export async function POST(req: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user and assign default role
-    const result = await prisma.$transaction(async (prisma) => {
+    // Use a transaction for creating user and assigning default role
+    const result = await knex.transaction(async (trx) => {
       // 1. Create the user
-      const user = await prisma.user.create({
-        data: {
+      const insertResult = await trx('User')
+        .insert({
+          id: trx.raw('uuid_generate_v4()'),
           email,
           password: hashedPassword,
           firstName,
           lastName,
           phone,
-        },
-      });
+          status: 'ACTIVE', // Default status
+          createdAt: trx.fn.now(),
+          updatedAt: trx.fn.now()
+        })
+        .returning('id');
+      
+      // Extract the user ID as a string
+      const userId = insertResult[0].id;
 
       // 2. Find default role
-      const defaultRole = await prisma.role.findFirst({
-        where: {
-          isDefault: true,
-        },
-      });
+      const defaultRole = await trx('Role')
+        .where({ isDefault: true })
+        .first();
 
       // 3. If default role exists, assign it to the user
       if (defaultRole) {
-        await prisma.userRole.create({
-          data: {
-            user: {
-              connect: {
-                id: user.id,
-              },
-            },
-            role: {
-              connect: {
-                id: defaultRole.id,
-              },
-            },
-          },
-        });
+        await trx('UserRole')
+          .insert({
+            id: trx.raw('uuid_generate_v4()'),
+            userId: userId,
+            roleId: defaultRole.id,
+            createdAt: trx.fn.now(),
+            updatedAt: trx.fn.now()
+          });
       }
+
+      // Get the created user
+      const user = await trx('User')
+        .where({ id: userId })
+        .first();
 
       return { user, defaultRole };
     });

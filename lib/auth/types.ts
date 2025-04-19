@@ -1,4 +1,14 @@
-import { UserRole, UserStatus, PermissionTarget } from '@prisma/client';
+// Knex-compatible enums (no Prisma dependency)
+export enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  SUSPENDED = 'SUSPENDED',
+}
+export enum PermissionTarget {
+  USER = 'USER',
+  ROLE = 'ROLE',
+  ORGANIZATION = 'ORGANIZATION',
+}
 import 'next-auth';
 
 export interface Permission {

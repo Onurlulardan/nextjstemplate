@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
-import { prisma } from '@/lib/prisma';
-import { requirePermission } from '@/lib/auth/permissions';
+import knex from '@/knex';
+import { requirePermission } from '@/lib/auth/server-permissions';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -14,19 +14,34 @@ export async function GET() {
   await requirePermission('security_log', 'view');
 
   try {
-    const logs = await prisma.securityLog.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
-      },
-    });
+    // Fetch security logs with Knex
+    const logs = await knex('SecurityLog')
+      .select(
+        'SecurityLog.id',
+        'SecurityLog.userId',
+        'SecurityLog.email',
+        'SecurityLog.ipAddress',
+        'SecurityLog.userAgent',
+        'SecurityLog.status',
+        'SecurityLog.type',
+        'SecurityLog.message',
+        'SecurityLog.createdAt'
+      )
+      .orderBy('SecurityLog.createdAt', 'desc');
+
+    // For each log, get user information if userId exists
+    for (const log of logs) {
+      if (log.userId) {
+        const user = await knex('User')
+          .where({ id: log.userId })
+          .select('firstName', 'lastName')
+          .first();
+        
+        log.user = user || null;
+      } else {
+        log.user = null;
+      }
+    }
 
     return NextResponse.json(logs);
   } catch (error) {

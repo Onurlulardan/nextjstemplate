@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import { Card, Button, Tag, Typography, Dropdown, MenuProps, Drawer, Modal } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, MoreOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
-import { usePermission } from '@/lib/auth/permissions';
+import { usePermission } from '@/lib/auth/client-permissions';
 import { DataGrid } from '@/core/components/datagrid';
 import { UserForm } from './components/user-form';
-import { User, UserStatus } from '@prisma/client';
+import { User, UserStatus } from '@/knex/types';
 import { getRequest, postRequest, putRequest, deleteRequest } from '@/lib/apiClient';
 
 const { Title } = Typography;
@@ -158,8 +158,8 @@ export default function UsersPage() {
         <>
           {record.userRoles && record.userRoles.length > 0 ? (
             record.userRoles.map((userRole, index) => (
-              <Tag 
-                key={index} 
+              <Tag
+                key={index}
                 color={userRole.role.name === 'ADMIN' ? 'blue' : 'green'}
                 style={{ marginRight: 4, marginBottom: 4 }}
               >
@@ -230,10 +230,14 @@ export default function UsersPage() {
         width={720}
       >
         <UserForm
-          initialValues={selectedUser ? {
-            ...selectedUser,
-            userRoles: selectedUser.userRoles
-          } : undefined}
+          initialValues={
+            selectedUser
+              ? {
+                  ...selectedUser,
+                  userRoles: selectedUser.userRoles,
+                }
+              : undefined
+          }
           onSubmit={handleSubmit}
           loading={formLoading}
         />

@@ -1,17 +1,16 @@
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import { NextAuthKnexAdapter } from '@/knex/adapters/nextauth-knex-adapter';
+import knex from '@/knex';
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { UserStatus, PermissionTarget } from '@prisma/client';
-import { Permission } from './types';
+import { UserStatus, PermissionTarget, Permission } from './types';
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: NextAuthKnexAdapter(knex),
   session: {
     strategy: 'jwt',
-    maxAge: Number(process.env.NEXTAUTH_SESSION_MAX_AGE) || 7 * 24 * 60 * 60, // 7 days fallback
-    updateAge: Number(process.env.NEXTAUTH_SESSION_UPDATE_AGE) || 60 * 60, // 1 hour fallback
+    maxAge: Number(process.env.NEXTAUTH_SESSION_MAX_AGE) || 7 * 24 * 60 * 60, // 7 days
+    updateAge: Number(process.env.NEXTAUTH_SESSION_UPDATE_AGE) || 60 * 60, // 1 hour
   },
   pages: {
     signIn: '/auth/login',
@@ -25,228 +24,236 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials, request) {
-        // Get IP and user agent from request headers
-        const ipAddress = request?.headers?.['x-forwarded-for']?.split(',')[0] || '0.0.0.0';
-        const userAgent = request?.headers?.['user-agent'] || 'Unknown';
+      // cast request to any to avoid undefined-header errors
+      async authorize(credentials, request: any) {
+        const headers = request.headers || {};
+        const ipAddress = (headers['x-forwarded-for'] as string)?.split(',')[0] || '0.0.0.0';
+        const userAgent = (headers['user-agent'] as string) || 'Unknown';
 
+        // missing credentials
         if (!credentials?.email || !credentials?.password) {
-          try {
-            await prisma.securityLog.create({
-              data: {
-                email: credentials?.email || '',
-                ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
-                userAgent: userAgent,
-                status: 'FAILED',
-                type: 'LOGIN',
-                message: 'Missing credentials',
-              },
-            });
-          } catch (error) {
-            console.error('Failed to create security log:', error);
-          }
+          await knex('SecurityLog')
+            .insert({
+              id: knex.raw('uuid_generate_v4()'),
+              email: credentials?.email || '',
+              ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
+              userAgent,
+              status: 'FAILED',
+              type: 'LOGIN',
+              message: 'Missing credentials',
+              createdAt: knex.fn.now(),
+            })
+            .catch(console.error);
           throw new Error('Please provide both email and password');
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase() },
-          include: {
-            permissions: {
-              include: {
-                resource: true,
-                actions: {
-                  include: {
-                    action: true,
-                  },
-                },
-              },
-            },
-            userRoles: {
-              include: {
-                role: true,
-              },
-            },
-            memberships: {
-              include: {
-                organization: {
-                  include: {
-                    permissions: {
-                      include: {
-                        resource: true,
-                        actions: {
-                          include: {
-                            action: true,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-                role: {
-                  include: {
-                    permissions: {
-                      include: {
-                        resource: true,
-                        actions: {
-                          include: {
-                            action: true,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              where: {
-                organization: {
-                  parentId: null,
-                },
-              },
-            },
-          },
-        });
-
-        if (!user || !(await bcrypt.compare(credentials.password, user.password))) {
-          try {
-            await prisma.securityLog.create({
-              data: {
-                email: credentials.email.toLowerCase(),
-                ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
-                userAgent: userAgent,
-                status: 'FAILED',
-                type: 'LOGIN',
-                message: 'Invalid credentials',
-              },
-            });
-          } catch (error) {
-            console.error('Failed to create security log:', error);
-          }
+        // fetch user
+        const user = await knex('User')
+          .whereRaw('LOWER(email) = ?', [credentials.email.toLowerCase()])
+          .first();
+        if (!user) {
+          await knex('SecurityLog')
+            .insert({
+              id: knex.raw('uuid_generate_v4()'),
+              email: credentials.email.toLowerCase(),
+              ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
+              userAgent,
+              status: 'FAILED',
+              type: 'LOGIN',
+              message: 'Invalid credentials',
+              createdAt: knex.fn.now(),
+            })
+            .catch(console.error);
           throw new Error('Invalid email or password');
         }
 
-        if (user.status !== UserStatus.ACTIVE) {
-          try {
-            await prisma.securityLog.create({
-              data: {
-                userId: user.id,
-                email: user.email,
-                ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
-                userAgent: userAgent,
-                status: 'FAILED',
-                type: 'LOGIN',
-                message: 'Account is not active',
-              },
-            });
-          } catch (error) {
-            console.error('Failed to create security log:', error);
-          }
-          throw new Error('Your account is not active. Please contact support.');
+        // check password
+        const valid = await bcrypt.compare(credentials.password, user.password);
+        if (!valid) {
+          await knex('SecurityLog')
+            .insert({
+              id: knex.raw('uuid_generate_v4()'),
+              email: credentials.email.toLowerCase(),
+              ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
+              userAgent,
+              status: 'FAILED',
+              type: 'LOGIN',
+              message: 'Invalid credentials',
+              createdAt: knex.fn.now(),
+            })
+            .catch(console.error);
+          throw new Error('Invalid email or password');
         }
 
-        // Prepare the user's direct permissions
-        const directPermissions: Permission[] = user.permissions.map((p) => ({
-          target: PermissionTarget.USER,
-          resource: {
-            slug: p.resource.slug,
-          },
-          actions: p.actions.map((pa) => ({
-            slug: pa.action.slug,
-          })),
-        }));
-
-        // Prepare permissions for memberships
-        const memberships = user.memberships.map((m) => ({
-          id: m.id,
-          role: m.role
-            ? {
-                id: m.role.id,
-                name: m.role.name,
-                permissions: m.role.permissions.map((p) => ({
-                  target: p.target,
-                  resource: {
-                    slug: p.resource.slug,
-                  },
-                  actions: p.actions.map((a) => ({
-                    slug: a.action.slug,
-                  })),
-                })),
-              }
-            : null,
-          organization: {
-            id: m.organization.id,
-            name: m.organization.name,
-            slug: m.organization.slug,
-            permissions: m.organization.permissions.map((p) => ({
-              target: p.target,
-              resource: {
-                slug: p.resource.slug,
-              },
-              actions: p.actions.map((a) => ({
-                slug: a.action.slug,
-              })),
-            })),
-          },
-        }));
-
-        // Log successful login
-        try {
-          await prisma.securityLog.create({
-            data: {
+        // inactive account
+        if (user.status !== UserStatus.ACTIVE) {
+          await knex('SecurityLog')
+            .insert({
+              id: knex.raw('uuid_generate_v4()'),
               userId: user.id,
               email: user.email,
               ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
-              userAgent: userAgent,
-              status: 'SUCCESS',
+              userAgent,
+              status: 'FAILED',
               type: 'LOGIN',
-              message: `Successful login for user ${user.email}`,
-            },
-          });
-        } catch (error) {
-          console.error('Failed to create security log:', error);
+              message: 'Account is not active',
+              createdAt: knex.fn.now(),
+            })
+            .catch(console.error);
+          throw new Error('Your account is not active. Please contact support.');
         }
 
-        const userRoles = user.userRoles.map((ur) => ({
-          role: {
-            id: ur.role.id,
-            name: ur.role.name,
-            description: ur.role.description || '',
+        // direct permissions
+        const perms = await knex('Permission')
+          .where({ userId: user.id, target: PermissionTarget.USER })
+          .leftJoin('Resource', 'Permission.resourceId', 'Resource.id')
+          .select('Permission.id as permissionId', 'Resource.slug as resourceSlug');
+        const permIds = perms.map((p) => p.permissionId);
+        let actRows: { permissionId: string; slug: string }[] = [];
+        if (permIds.length) {
+          actRows = await knex('PermissionAction')
+            .whereIn('permissionId', permIds)
+            .leftJoin('Action', 'PermissionAction.actionId', 'Action.id')
+            .select('PermissionAction.permissionId', 'Action.slug');
+        }
+        const directPermissions: Permission[] = perms.map((p) => ({
+          target: PermissionTarget.USER,
+          resource: { slug: p.resourceSlug },
+          actions: actRows
+            .filter((a) => a.permissionId === p.permissionId)
+            .map((a) => ({ slug: a.slug })),
+        }));
+
+        // memberships
+        const mems = await knex('OrganizationMember')
+          .where({ userId: user.id })
+          .leftJoin('Organization', 'OrganizationMember.organizationId', 'Organization.id')
+          .leftJoin('Role', 'OrganizationMember.roleId', 'Role.id')
+          .select(
+            'OrganizationMember.id as membershipId',
+            'Organization.id as orgId',
+            'Organization.name as orgName',
+            'Organization.slug as orgSlug',
+            'Role.id as roleId',
+            'Role.name as roleName',
+            'Role.description as roleDescription'
+          );
+        const orgIds = mems.map((m) => m.orgId).filter(Boolean);
+
+        let orgPerms: any[] = [];
+        if (orgIds.length) {
+          orgPerms = await knex('Permission')
+            .whereIn('organizationId', orgIds)
+            .andWhere('target', PermissionTarget.ORGANIZATION)
+            .leftJoin('Resource', 'Permission.resourceId', 'Resource.id')
+            .select(
+              'Permission.id as permissionId',
+              'Permission.organizationId',
+              'Resource.slug as resourceSlug'
+            );
+        }
+        const orgPermIds = orgPerms.map((p) => p.permissionId);
+        let orgActs: { permissionId: string; slug: string }[] = [];
+        if (orgPermIds.length) {
+          orgActs = await knex('PermissionAction')
+            .whereIn('permissionId', orgPermIds)
+            .leftJoin('Action', 'PermissionAction.actionId', 'Action.id')
+            .select('PermissionAction.permissionId', 'Action.slug');
+        }
+
+        const roleIds = mems.map((m) => m.roleId).filter(Boolean);
+        let rolePerms: any[] = [];
+        if (roleIds.length) {
+          rolePerms = await knex('Permission')
+            .whereIn('roleId', roleIds)
+            .andWhere('target', PermissionTarget.ROLE)
+            .leftJoin('Resource', 'Permission.resourceId', 'Resource.id')
+            .select(
+              'Permission.id as permissionId',
+              'Permission.roleId',
+              'Resource.slug as resourceSlug'
+            );
+        }
+        const rolePermIds = rolePerms.map((p) => p.permissionId);
+        let roleActs: { permissionId: string; slug: string }[] = [];
+        if (rolePermIds.length) {
+          roleActs = await knex('PermissionAction')
+            .whereIn('permissionId', rolePermIds)
+            .leftJoin('Action', 'PermissionAction.actionId', 'Action.id')
+            .select('PermissionAction.permissionId', 'Action.slug');
+        }
+
+        const memberships = mems.map((m) => ({
+          id: m.membershipId,
+          role: m.roleId
+            ? {
+                id: m.roleId,
+                name: m.roleName,
+                description: m.roleDescription || '',
+                permissions: rolePerms
+                  .filter((rp) => rp.roleId === m.roleId)
+                  .map((rp) => ({
+                    target: PermissionTarget.ROLE,
+                    resource: { slug: rp.resourceSlug },
+                    actions: roleActs
+                      .filter((ra) => ra.permissionId === rp.permissionId)
+                      .map((ra) => ({ slug: ra.slug })),
+                  })),
+              }
+            : null,
+          organization: {
+            id: m.orgId,
+            name: m.orgName,
+            slug: m.orgSlug,
+            permissions: orgPerms
+              .filter((op) => op.organizationId === m.orgId)
+              .map((op) => ({
+                target: PermissionTarget.ORGANIZATION,
+                resource: { slug: op.resourceSlug },
+                actions: orgActs
+                  .filter((oa) => oa.permissionId === op.permissionId)
+                  .map((oa) => ({ slug: oa.slug })),
+              })),
           },
         }));
 
-        return {
-          ...user,
-          permissions: directPermissions,
-          memberships,
-          userRoles,
-        };
+        // user roles
+        const ur = await knex('UserRole')
+          .where({ userId: user.id })
+          .leftJoin('Role', 'UserRole.roleId', 'Role.id')
+          .select('Role.id', 'Role.name', 'Role.description');
+        const userRoles = ur.map((r) => ({
+          role: { id: r.id, name: r.name, description: r.description || '' },
+        }));
+
+        // success log
+        await knex('SecurityLog')
+          .insert({
+            id: knex.raw('uuid_generate_v4()'),
+            userId: user.id,
+            email: user.email,
+            ipAddress: ipAddress === '::1' ? '127.0.0.1' : ipAddress,
+            userAgent,
+            status: 'SUCCESS',
+            type: 'LOGIN',
+            message: `Successful login for user ${user.email}`,
+            createdAt: knex.fn.now(),
+          })
+          .catch(console.error);
+
+        return { ...user, permissions: directPermissions, memberships, userRoles };
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user, trigger }) {
       if (trigger === 'signIn' && user) {
-        token.id = user.id;
-        token.firstName = user.firstName;
-        token.lastName = user.lastName;
-        token.phone = user.phone;
-        token.avatar = user.avatar;
-        token.status = user.status;
-        token.permissions = user.permissions;
-        token.memberships = user.memberships;
-        token.userRoles = user.userRoles;
+        Object.assign(token, user);
       }
       return token;
     },
     async session({ session, token }) {
-      session.user.id = token.id;
-      session.user.firstName = token.firstName;
-      session.user.lastName = token.lastName;
-      session.user.phone = token.phone;
-      session.user.avatar = token.avatar;
-      session.user.status = token.status;
-      session.user.permissions = token.permissions;
-      session.user.memberships = token.memberships;
-      session.user.userRoles = token.userRoles;
+      session.user = { ...session.user, ...token };
       return session;
     },
   },

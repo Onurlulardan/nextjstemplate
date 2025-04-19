@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import knex from '@/knex';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
-import { requirePermission } from '@/lib/auth/permissions';
+import { requirePermission } from '@/lib/auth/server-permissions';
 
 // GET /api/users/available
 export async function GET(request: NextRequest) {
@@ -14,20 +14,15 @@ export async function GET(request: NextRequest) {
 
     await requirePermission('user', 'view');
 
-    const users = await prisma.user.findMany({
-      where: {
-        status: 'ACTIVE',
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-      },
-      orderBy: {
-        firstName: 'asc',
-      },
-    });
+    const users = await knex('User')
+      .where({ status: 'ACTIVE' })
+      .select(
+        'id',
+        'email',
+        'firstName',
+        'lastName'
+      )
+      .orderBy('firstName', 'asc');
 
     return NextResponse.json(users);
   } catch (error) {
