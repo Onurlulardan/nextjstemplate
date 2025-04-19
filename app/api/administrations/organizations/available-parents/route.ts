@@ -1,8 +1,8 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import knex from '@/knex';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth/auth-options';
-import { requirePermission } from '@/lib/auth/permissions';
+import { requirePermission } from '@/lib/auth/server-permissions';
 
 // GET /api/organizations/available-parents?organizationId=xxx
 export async function GET(request: NextRequest) {
@@ -19,11 +19,25 @@ export async function GET(request: NextRequest) {
     const organizationId = searchParams.get('organizationId');
 
     // Get all organizations first
-    const organizations = await prisma.organization.findMany({
-      include: {
-        children: true,
-      },
-    });
+    const organizations = await knex('Organization')
+      .select(
+        'id',
+        'name',
+        'slug',
+        'status',
+        'ownerId',
+        'parentId',
+        'createdAt',
+        'updatedAt'
+      );
+
+    // For each organization, get its children
+    for (const org of organizations) {
+      const children = await knex('Organization')
+        .where({ parentId: org.id })
+        .select('id', 'name', 'slug');
+      org.children = children;
+    }
 
     if (organizationId) {
       // Recursive function to get all child IDs
