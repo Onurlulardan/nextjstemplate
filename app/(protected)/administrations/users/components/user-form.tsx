@@ -1,7 +1,7 @@
 'use client';
 
 import { Form, Input, Select, Button } from 'antd';
-import { User, UserStatus } from '@prisma/client';
+import { User, UserStatus } from '@/knex/types';
 import { useEffect, useState } from 'react';
 import { getRequest } from '@/lib/apiClient';
 
@@ -60,12 +60,12 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
       try {
         const data = await getRequest<Role[]>('/administrations/roles');
         setRoles(data);
-        
+
         if (!initialValues) {
-          const defaultRole = data.find(role => role.isDefault);
+          const defaultRole = data.find((role) => role.isDefault);
           if (defaultRole) {
             form.setFieldsValue({
-              roleIds: [defaultRole.id]
+              roleIds: [defaultRole.id],
             });
           }
         }
@@ -134,7 +134,7 @@ export function UserForm({ initialValues, onSubmit, loading }: UserFormProps) {
       </Form.Item>
 
       <Form.Item label="Roles" name="roleIds">
-        <Select 
+        <Select
           mode="multiple"
           placeholder="Select roles"
           loading={loadingRoles}

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { usePermission } from '@/lib/auth/client-permissions';
 import { DataGrid } from '@/core/components/datagrid';
 import { UserForm } from './components/user-form';
-import { User, UserStatus } from '@prisma/client';
+import { User, UserStatus } from '@/knex/types';
 import { getRequest, postRequest, putRequest, deleteRequest } from '@/lib/apiClient';
 
 const { Title } = Typography;

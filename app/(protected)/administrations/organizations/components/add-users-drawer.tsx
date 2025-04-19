@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Drawer, Form, Select, Button } from 'antd';
-import { Organization, User } from '@prisma/client';
+import { Organization, User } from '@/knex/types';
 import { getRequest, postRequest } from '@/lib/apiClient';
 
 interface AddUsersDrawerProps {

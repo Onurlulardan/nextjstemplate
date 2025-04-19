@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { Form, Input, Button, Space } from 'antd';
-import { Action } from '@prisma/client';
+import { Action } from '@/knex/types';
 
 interface ActionFormProps {
   initialValues?: Action | null;

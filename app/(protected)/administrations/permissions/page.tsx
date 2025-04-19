@@ -23,7 +23,7 @@ import {
 } from '@ant-design/icons';
 import { usePermission } from '@/lib/auth/client-permissions';
 import { DataGrid } from '@/core/components/datagrid';
-import { Permission, Resource, Action } from '@prisma/client';
+import { Permission, Resource, Action } from '@/knex/types';
 import { PermissionForm } from './components/permission-form';
 import { ResourceForm } from './components/resource-form';
 import { ActionForm } from './components/action-form';

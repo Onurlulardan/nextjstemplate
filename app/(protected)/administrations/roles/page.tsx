@@ -6,7 +6,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, MoreOutlined } from '@ant-d
 import { useRouter } from 'next/navigation';
 import { usePermission } from '@/lib/auth/client-permissions';
 import { DataGrid } from '@/core/components/datagrid';
-import { Role } from '@prisma/client';
+import { Role } from '@/knex/types';
 import { RoleForm } from './components/role-form';
 import { getRequest, postRequest, putRequest, deleteRequest } from '@/lib/apiClient';
 
