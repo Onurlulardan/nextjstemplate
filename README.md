@@ -4,7 +4,7 @@
 
 [All Images](#all-images)
 
-A modern and scalable system. Developed with Next.js 15, TypeScript, Prisma, and Ant Design.
+A modern and scalable system. Developed with Next.js 15, TypeScript, Knex.js, and Ant Design.
 
 ## Features
 
@@ -30,7 +30,7 @@ The system keeps track of all authentication attempts, including:
 - **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Database**: [PostgreSQL](https://www.postgresql.org/)
-- **ORM**: [Prisma](https://www.prisma.io/)
+- **Query Builder**: [Knex.js](https://knexjs.org/)
 - **UI**: [Ant Design](https://ant.design/)
 - **Authentication**: [NextAuth.js](https://next-auth.js.org/)
 
@@ -72,11 +72,21 @@ nextstarter/
 │   │   ├── auth-options.ts      # NextAuth configuration
 │   │   ├── permissions.ts       # Permission control hooks
 │   │   └── session.ts           # Session management
-│   └── prisma.ts                # Prisma client
+│   └── utils/                   # Utility functions
 ├── hooks/                       # Custom React hooks
 │   └── useNotificationSetup.ts  # Notification hook
-└── prisma/                      # Database schema
-    ├── schema.prisma            # Prisma schema definitions
+└── knex/                        # Database configuration
+    ├── knexfile.ts              # Knex configuration
+    ├── index.ts                 # Knex database client
+    ├── setdb.ts                 # Database schema creation
+    ├── seed.ts                  # Database seeding
+    ├── adapters/                # Database adapters
+    │   └── nextauth-knex-adapter.ts  # NextAuth Knex adapter
+    ├── types/                   # TypeScript type definitions
+    │   ├── user.ts              # User types
+    │   ├── organization.ts      # Organization types
+    │   ├── role.ts              # Role types
+    │   └── permission.ts        # Permission types
     └── migrations/              # Database migrations
 ```
 
@@ -215,9 +225,13 @@ export async function PUT(request: NextRequest) {
 
 ```typescript
 // 1. Create Sales Role
-const salesRole = await prisma.role.create({
-  data: { name: 'Sales Team', description: 'Sales team members' },
-});
+const salesRole = await knex('roles')
+  .insert({
+    name: 'Sales Team',
+    description: 'Sales team members',
+  })
+  .returning('*')
+  .first();
 
 // 2. Assign Permissions to Sales Role
 const permissions = [
@@ -236,21 +250,29 @@ const permissions = [
 ];
 
 // 3. Apply Permissions
-await Promise.all(permissions.map((perm) => prisma.permission.create({ data: perm })));
+await Promise.all(permissions.map((perm) => knex('permissions').insert(perm)));
 ```
 
 #### Scenario 2: Regional Manager Permissions
 
 ```typescript
 // 1. Create Regional Manager Role
-const managerRole = await prisma.role.create({
-  data: { name: 'Regional Manager', description: 'Regional management team' },
-});
+const managerRole = await knex('roles')
+  .insert({
+    name: 'Regional Manager',
+    description: 'Regional management team',
+  })
+  .returning('*')
+  .first();
 
 // 2. Create Region Organization
-const regionOrg = await prisma.organization.create({
-  data: { name: 'East Region', code: 'EAST_001' },
-});
+const regionOrg = await knex('organizations')
+  .insert({
+    name: 'East Region',
+    code: 'EAST_001',
+  })
+  .returning('*')
+  .first();
 
 // 3. Assign Organization-wide Permissions
 const permissions = [
@@ -268,7 +290,7 @@ const permissions = [
   },
 ];
 
-await Promise.all(permissions.map((perm) => prisma.permission.create({ data: perm })));
+await Promise.all(permissions.map((perm) => knex('permissions').insert(perm)));
 ```
 
 ## Notification System
@@ -731,8 +753,8 @@ npm install
 3. Prepare the database
 
 ```bash
-npx prisma generate
-npx prisma db push
+npm run reset-db    # Create database schema
+npm run seed        # Load initial data
 ```
 
 4. Start the development server
@@ -755,7 +777,11 @@ Create a `.env` file in the project root directory and define the following vari
 
 ```env
 # Database Connection
-DATABASE_URL="postgres://postgres:password@host:port/yourdbname?sslmode=disable"
+DB_HOST="localhost"
+DB_PORT="5432"
+DB_USER="postgres"
+DB_PASSWORD="password"
+DB_NAME="nextstarter"
 
 # NextAuth.js Configuration
 NEXTAUTH_SECRET="your-secret-key"
@@ -772,7 +798,7 @@ SUPER_ADMIN_PASSWORD="your-secure-password"
 
 ### Important Notes
 
-1. **Database Connection**: The `DATABASE_URL` variable contains PostgreSQL connection information. Connection string format: `postgres://user:password@host:port/database?sslmode=disable`
+1. **Database Connection**: The database configuration uses separate environment variables for host, port, user, password, and database name for Knex.js connection.
 
 2. **NextAuth.js Configuration**:
 
@@ -797,7 +823,7 @@ npm run build       # Build project for production
 npm run start       # Start production server
 
 # Database
-npm run migrate     # Create and apply Prisma migration
+npm run migrate     # Create and apply Knex migration
 npm run reset-db    # Reset database
 npm run seed        # Load seed data
 
@@ -808,7 +834,7 @@ npm run format      # Format code with Prettier
 
 ### 2. Database Seed Process
 
-The `prisma/seed.ts` file creates initial data:
+The `knex/seed.ts` file creates initial data:
 
 1. **Default Resources**
 
